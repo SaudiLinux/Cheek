@@ -24,24 +24,54 @@ import poplib
 import subprocess
 import sys
 from datetime import datetime
+import platform
+import warnings
+from colorama import init, Fore, Back, Style
+import dns.resolver
+import nmap
+from exploits.web_exploits import WebExploits
+from exploits.advanced_exploits import AdvancedExploits
+from exploits.modern_vulnerabilities import ModernVulnerabilities
+
+# Initialize colorama for Windows compatibility
+init(autoreset=True)
 
 class Colors:
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    PURPLE = '\033[95m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    BOLD = '\033[1m'
+    # Use colorama colors for better cross-platform support
+    RED = Fore.RED
+    GREEN = Fore.GREEN
+    YELLOW = Fore.YELLOW
+    BLUE = Fore.BLUE
+    PURPLE = Fore.MAGENTA
+    CYAN = Fore.CYAN
+    WHITE = Fore.WHITE
+    BOLD = Style.BRIGHT
     UNDERLINE = '\033[4m'
-    RESET = '\033[0m'
+    RESET = Style.RESET_ALL
 
 class CheekScanner:
     def __init__(self, target, threads=10, timeout=5):
         self.target = target
         self.threads = threads
         self.timeout = timeout
+        # Initialize colorama for Windows compatibility
+        init(autoreset=True)
+        # Initialize warnings filter
+        warnings.filterwarnings('ignore', message='Unverified HTTPS request')
+        # Setup requests session with better settings
+        self.session = requests.Session()
+        self.session.verify = False
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=threads,
+            pool_maxsize=threads * 2,
+            max_retries=requests.adapters.Retry(
+                total=2,
+                backoff_factor=0.3,
+                status_forcelist=[500, 502, 503, 504]
+            )
+        )
+        self.session.mount('http://', adapter)
+        self.session.mount('https://', adapter)
         self.results = {
             'target': target,
             'scan_time': datetime.now().isoformat(),
@@ -53,7 +83,11 @@ class CheekScanner:
             'cicd': [],
             'containers': [],
             'vulnerabilities': [],
-            'ports': []
+            'ports': [],
+            'dns_info': [],
+            'subdomains': [],
+            'apis': [],
+            'cloud_services': []
         }
         
     def print_banner(self):
@@ -109,7 +143,7 @@ class CheekScanner:
         try:
             # اختبار HTTP
             url = f"http://{self.target}"
-            response = requests.get(url, timeout=self.timeout, headers={'User-Agent': 'CheekScanner/1.0'})
+            response = self.session.get(url, timeout=self.timeout, headers={'User-Agent': 'CheekScanner/1.0'})
             
             server_info = {
                 'type': 'Unknown',
@@ -152,7 +186,7 @@ class CheekScanner:
             # اختبار HTTPS
             try:
                 https_url = f"https://{self.target}"
-                https_response = requests.get(https_url, timeout=self.timeout, verify=False)
+                https_response = self.session.get(https_url, timeout=self.timeout, verify=False)
                 
                 if 'Server' in https_response.headers:
                     https_server = {
@@ -178,6 +212,10 @@ class CheekScanner:
             self.results['web_servers'].append(server_info)
             print(f"{Colors.GREEN}[+] خادم ويب (HTTP): {server_info['type']} {server_info['version']} على المنفذ 80{Colors.RESET}")
             
+        except requests.exceptions.Timeout:
+            print(f"{Colors.YELLOW}[!] مهلة الاتصال لخادم الويب{Colors.RESET}")
+        except requests.exceptions.ConnectionError:
+            print(f"{Colors.YELLOW}[!] خطأ في الاتصال بخادم الويب{Colors.RESET}")
         except Exception as e:
             print(f"{Colors.RED}[-] فشل الكشف عن خادم الويب: {e}{Colors.RESET}")
     
@@ -503,6 +541,69 @@ class CheekScanner:
         
         self.results['containers'] = detected_containers
     
+    def gather_dns_info(self):
+        """جمع معلومات DNS"""
+        print(f"{Colors.YELLOW}[*] جمع معلومات DNS...{Colors.RESET}")
+        
+        try:
+            # DNS A record
+            answers = dns.resolver.resolve(self.target, 'A')
+            for rdata in answers:
+                dns_info = {
+                    'type': 'A Record',
+                    'value': str(rdata),
+                    'description': 'IPv4 Address'
+                }
+                self.results['dns_info'].append(dns_info)
+                print(f"{Colors.GREEN}[+] DNS A Record: {rdata}{Colors.RESET}")
+            
+            # DNS MX record
+            try:
+                mx_answers = dns.resolver.resolve(self.target, 'MX')
+                for rdata in mx_answers:
+                    dns_info = {
+                        'type': 'MX Record',
+                        'value': str(rdata.exchange),
+                        'priority': rdata.preference,
+                        'description': 'Mail Exchange'
+                    }
+                    self.results['dns_info'].append(dns_info)
+                    print(f"{Colors.GREEN}[+] DNS MX Record: {rdata.exchange} (Priority: {rdata.preference}){Colors.RESET}")
+            except:
+                pass
+            
+            # DNS TXT record
+            try:
+                txt_answers = dns.resolver.resolve(self.target, 'TXT')
+                for rdata in txt_answers:
+                    txt_value = str(rdata).strip('"')
+                    dns_info = {
+                        'type': 'TXT Record',
+                        'value': txt_value,
+                        'description': 'Text Record'
+                    }
+                    self.results['dns_info'].append(dns_info)
+                    print(f"{Colors.GREEN}[+] DNS TXT Record: {txt_value[:50]}...{Colors.RESET}")
+            except:
+                pass
+            
+            # DNS NS record
+            try:
+                ns_answers = dns.resolver.resolve(self.target, 'NS')
+                for rdata in ns_answers:
+                    dns_info = {
+                        'type': 'NS Record',
+                        'value': str(rdata),
+                        'description': 'Name Server'
+                    }
+                    self.results['dns_info'].append(dns_info)
+                    print(f"{Colors.GREEN}[+] DNS NS Record: {rdata}{Colors.RESET}")
+            except:
+                pass
+                
+        except Exception as e:
+            print(f"{Colors.RED}[-] فشل جمع معلومات DNS: {e}{Colors.RESET}")
+    
     def detect_vulnerabilities(self):
         """الكشف عن الثغرات الأمنية"""
         print(f"{Colors.YELLOW}[*] الكشف عن الثغرات الأمنية...{Colors.RESET}")
@@ -587,12 +688,228 @@ class CheekScanner:
             
         except Exception as e:
             print(f"{Colors.RED}[-] فشل الكشف عن الثغرات: {e}{Colors.RESET}")
+
+    def detect_modern_apis(self):
+        """الكشف عن واجهات برمجة التطبيقات الحديثة"""
+        try:
+            print(f"{Colors.YELLOW}[*] جاري فحص واجهات برمجة التطبيقات الحديثة...{Colors.RESET}")
+            
+            # قائمة بمسارات API الشائعة
+            api_endpoints = [
+                '/api/v1', '/api/v2', '/api/v3',
+                '/rest/api', '/graphql', '/swagger-ui.html',
+                '/api-docs', '/v1/api-docs', '/openapi.json',
+                '/swagger.json', '/api/swagger.json',
+                '/api/health', '/api/status', '/api/info',
+                '/api/users', '/api/auth', '/api/login',
+                '/api/register', '/api/profile', '/api/settings'
+            ]
+            
+            # قائمة برؤوس API الشائعة
+            api_headers = [
+                'X-API-Key', 'X-API-Version', 'X-RateLimit-Limit',
+                'X-RateLimit-Remaining', 'X-RateLimit-Reset',
+                'X-Request-ID', 'X-Correlation-ID', 'X-Forwarded-For'
+            ]
+            
+            for endpoint in api_endpoints:
+                try:
+                    url = f"http://{self.target}{endpoint}"
+                    response = requests.get(url, timeout=self.timeout, verify=False, allow_redirects=True)
+                    
+                    if response.status_code == 200:
+                        self.results['apis'].append({
+                            'endpoint': endpoint,
+                            'status': response.status_code,
+                            'content_type': response.headers.get('Content-Type', 'Unknown')
+                        })
+                        
+                        # التحقق من نوع API
+                        if 'application/json' in response.headers.get('Content-Type', ''):
+                            try:
+                                json_data = response.json()
+                                if isinstance(json_data, dict):
+                                    # التحقق من وجود مفاتيح API شائعة
+                                    api_keys = ['version', 'endpoints', 'swagger', 'openapi']
+                                    if any(key in str(json_data).lower() for key in api_keys):
+                                        self.results['apis'].append({
+                                            'endpoint': endpoint,
+                                            'type': 'REST API Documentation',
+                                            'detected_keys': list(json_data.keys())[:5]  # أول 5 مفاتيح فقط
+                                        })
+                            except:
+                                pass
+                        
+                        elif 'text/html' in response.headers.get('Content-Type', ''):
+                            if 'swagger' in response.text.lower() or 'openapi' in response.text.lower():
+                                self.results['apis'].append({
+                                    'endpoint': endpoint,
+                                    'type': 'API Documentation (Swagger/OpenAPI)',
+                                    'status': response.status_code
+                                })
+                    
+                    elif response.status_code == 401:
+                        self.results['apis'].append({
+                            'endpoint': endpoint,
+                            'status': response.status_code,
+                            'note': 'API requires authentication'
+                        })
+                    
+                    elif response.status_code == 403:
+                        self.results['apis'].append({
+                            'endpoint': endpoint,
+                            'status': response.status_code,
+                            'note': 'API access forbidden'
+                        })
+                    
+                except requests.exceptions.RequestException:
+                    continue
+            
+            # فحص رؤوس API في الاستجابة الأساسية
+            try:
+                response = requests.get(f"http://{self.target}", timeout=self.timeout, verify=False)
+                detected_headers = []
+                for header in api_headers:
+                    if header in response.headers:
+                        detected_headers.append(header)
+                
+                if detected_headers:
+                    self.results['apis'].append({
+                        'type': 'API Headers Detected',
+                        'headers': detected_headers
+                    })
+                    
+            except:
+                pass
+                
+        except Exception as e:
+            self.results['apis'].append(f"خطأ في فحص واجهات API: {str(e)}")
     
+    def detect_cloud_services(self):
+        """الكشف عن خدمات الحوسبة السحابية"""
+        try:
+            print(f"{Colors.YELLOW}[*] جاري فحص خدمات الحوسبة السحابية...{Colors.RESET}")
+            
+            # قائمة بخدمات AWS الشائعة
+            aws_services = [
+                's3.amazonaws.com', 'ec2.amazonaws.com', 'rds.amazonaws.com',
+                'elasticbeanstalk.com', 'cloudfront.net', 'elastic.co',
+                'amazonaws.com', 'awsstatic.com'
+            ]
+            
+            # قائمة بخدمات Azure
+            azure_services = [
+                'azurewebsites.net', 'cloudapp.azure.com', 'blob.core.windows.net',
+                'database.windows.net', 'azure-api.net', 'azureedge.net'
+            ]
+            
+            # قائمة بخدمات Google Cloud
+            gcp_services = [
+                'appspot.com', 'googleapis.com', 'cloudfunctions.net',
+                'run.app', 'firebaseapp.com', 'cloud.google.com'
+            ]
+            
+            # التحقق من DNS والاستجابات
+            try:
+                # فحص DNS للهدف
+                dns_records = dns.resolver.resolve(self.target.replace('http://', '').replace('https://', ''), 'A')
+                for record in dns_records:
+                    ip = str(record)
+                    # التحقق من نطاقات AWS
+                    if any(aws in self.target for aws in aws_services):
+                        self.results['cloud_services'].append({
+                            'type': 'AWS Service',
+                            'service': 'Amazon Web Services',
+                            'detected_by': 'domain_pattern'
+                        })
+                    
+                    # التحقق من نطاقات Azure
+                    elif any(azure in self.target for azure in azure_services):
+                        self.results['cloud_services'].append({
+                            'type': 'Azure Service',
+                            'service': 'Microsoft Azure',
+                            'detected_by': 'domain_pattern'
+                        })
+                    
+                    # التحقق من نطاقات GCP
+                    elif any(gcp in self.target for gcp in gcp_services):
+                        self.results['cloud_services'].append({
+                            'type': 'GCP Service',
+                            'service': 'Google Cloud Platform',
+                            'detected_by': 'domain_pattern'
+                        })
+            
+            except:
+                pass
+            
+            # فحص رؤوس الاستجابة للكشف عن الخدمات السحابية
+            try:
+                if not self.target.startswith(('http://', 'https://')):
+                    url = f"http://{self.target}"
+                else:
+                    url = self.target
+                
+                response = requests.get(url, timeout=self.timeout, verify=False)
+                
+                # رؤوس AWS
+                aws_headers = [
+                    'x-amz-request-id', 'x-amz-id-2', 'x-amz-cf-id',
+                    'x-amz-server-side-encryption', 'x-amz-version-id'
+                ]
+                
+                # رؤوس Azure
+                azure_headers = [
+                    'x-ms-request-id', 'x-ms-version', 'x-ms-lease-status',
+                    'x-ms-blob-type', 'x-ms-ratelimit-remaining'
+                ]
+                
+                # رؤوس GCP
+                gcp_headers = [
+                    'x-goog-generation', 'x-goog-metageneration', 'x-goog-hash',
+                    'x-goog-storage-class', 'x-cloud-trace-context'
+                ]
+                
+                # التحقق من الرؤوس
+                for header in aws_headers:
+                    if header in response.headers:
+                        self.results['cloud_services'].append({
+                            'type': 'AWS Header',
+                            'header': header,
+                            'value': response.headers[header][:50] + '...' if len(response.headers[header]) > 50 else response.headers[header]
+                        })
+                
+                for header in azure_headers:
+                    if header in response.headers:
+                        self.results['cloud_services'].append({
+                            'type': 'Azure Header',
+                            'header': header,
+                            'value': response.headers[header][:50] + '...' if len(response.headers[header]) > 50 else response.headers[header]
+                        })
+                
+                for header in gcp_headers:
+                    if header in response.headers:
+                        self.results['cloud_services'].append({
+                            'type': 'GCP Header',
+                            'header': header,
+                            'value': response.headers[header][:50] + '...' if len(response.headers[header]) > 50 else response.headers[header]
+                        })
+                        
+            except:
+                pass
+                
+        except Exception as e:
+            self.results['cloud_services'].append(f"خطأ في فحص الخدمات السحابية: {str(e)}")
+
     def generate_report(self):
         """إنشاء تقرير مفصل"""
         print(f"\n{Colors.CYAN}{Colors.BOLD}=== تقرير الفحص الأمني ==={Colors.RESET}")
         print(f"{Colors.YELLOW}الهدف: {Colors.GREEN}{self.target}{Colors.RESET}")
         print(f"{Colors.YELLOW}وقت الفحص: {Colors.GREEN}{self.results['scan_time']}{Colors.RESET}")
+        
+        if self.results['dns_info']:
+            print(f"\n{Colors.BLUE}[+] معلومات DNS:{Colors.RESET}")
+            for dns in self.results['dns_info']:
+                print(f"  - {dns['type']}: {dns['value']}")
         
         print(f"\n{Colors.BLUE}[+] المنافذ المفتوحة:{Colors.RESET}")
         for port in self.results['ports']:
@@ -636,18 +953,188 @@ class CheekScanner:
         else:
             print(f"\n{Colors.GREEN}[+] لم يتم العثور على ثغرات أمنية واضحة{Colors.RESET}")
         
-        # حفظ التقرير كملف JSON
+        # عرض الثغرات الحديثة
+        if self.results.get('modern_vulnerabilities'):
+            print(f"\n{Colors.RED}[!] الثغرات الحديثة المكتشفة:{Colors.RESET}")
+            for vuln in self.results['modern_vulnerabilities']:
+                severity = vuln.get('severity', 'Unknown')
+                severity_symbol = {
+                    'Critical': '🔴',
+                    'High': '🟠',
+                    'Medium': '🟡',
+                    'Low': '🟢',
+                    'Info': '🔵'
+                }.get(severity, '⚪')
+                
+                print(f"  {Colors.RED}{severity_symbol} {vuln['type']} ({severity}){Colors.RESET}")
+                print(f"    {Colors.YELLOW}الوصف: {vuln['description']}{Colors.RESET}")
+                if 'endpoint' in vuln:
+                    print(f"    {Colors.CYAN}نقطة النهاية: {vuln['endpoint']}{Colors.RESET}")
+                if 'exploit' in vuln:
+                    print(f"    {Colors.MAGENTA}الاستغلال: {vuln['exploit']}{Colors.RESET}")
+        else:
+            print(f"\n{Colors.GREEN}[+] لم يتم العثور على ثغرات حديثة{Colors.RESET}")
+        
+        # عرض معلومات API
+        if self.results.get('apis'):
+            print(f"\n{Colors.CYAN}[+] واجهات برمجة التطبيقات الحديثة:{Colors.RESET}")
+            for api_info in self.results['apis']:
+                if isinstance(api_info, dict):
+                    if 'endpoint' in api_info:
+                        print(f"  - نقطة نهاية API: {api_info['endpoint']} (الحالة: {api_info.get('status', 'غير معروف')})")
+                        if 'type' in api_info:
+                            print(f"    النوع: {api_info['type']}")
+                        if 'note' in api_info:
+                            print(f"    ملاحظة: {api_info['note']}")
+                        if 'content_type' in api_info:
+                            print(f"    نوع المحتوى: {api_info['content_type']}")
+                    elif 'type' in api_info and api_info['type'] == 'API Headers Detected':
+                        print(f"  - رؤوس API: {', '.join(api_info['headers'])}")
+                else:
+                    print(f"  - {api_info}")
+        
+        # عرض معلومات الخدمات السحابية
+        if self.results.get('cloud_services'):
+            print(f"\n{Colors.CYAN}[+] الخدمات السحابية المكتشفة:{Colors.RESET}")
+            for cloud_info in self.results['cloud_services']:
+                if isinstance(cloud_info, dict):
+                    if 'type' in cloud_info and 'service' in cloud_info:
+                        print(f"  - {cloud_info['service']} ({cloud_info['type']})")
+                        if 'detected_by' in cloud_info:
+                            print(f"    طريقة الكشف: {cloud_info['detected_by']}")
+                    elif 'type' in cloud_info and 'header' in cloud_info:
+                        print(f"  - رأس سحابي: {cloud_info['header']}")
+                        if 'value' in cloud_info:
+                            print(f"    القيمة: {cloud_info['value']}")
+                else:
+                    print(f"  - {cloud_info}")
+        
+        # حفظ التقرير كملف JSON مع تنسيق محسن
         report_filename = f"cheek_report_{self.target}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         try:
+            # إنشاء هيكل JSON محسن
+            enhanced_results = {
+                'scan_metadata': {
+                    'target': self.results.get('target', self.target),
+                    'scan_time': self.results.get('scan_time', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                    'scanner_version': '2.0',
+                    'total_scan_duration': getattr(self, 'scan_duration', 'Unknown')
+                },
+                'scan_summary': {
+                    'total_services_detected': len(self.results.get('services', [])),
+                    'total_vulnerabilities': len(self.results.get('vulnerabilities', [])) + len(self.results.get('modern_vulnerabilities', [])),
+                    'total_applications': len(self.results.get('applications', [])) + len(self.results.get('cms', [])),
+                    'total_frameworks': len(self.results.get('frameworks', [])),
+                    'total_apis': len(self.results.get('apis', [])),
+                    'cloud_services_detected': len(self.results.get('cloud_services', [])),
+                    'dns_records_found': len(self.results.get('dns_info', [])),
+                    'total_open_ports': len(self.results.get('ports', []))
+                },
+                'dns_information': self.results.get('dns_info', []),
+                'network_services': {
+                    'open_ports': self.results.get('ports', []),
+                    'web_servers': self.results.get('web_servers', []),
+                    'email_servers': self.results.get('email_servers', []),
+                    'databases': self.results.get('databases', [])
+                },
+                'applications_and_technologies': {
+                    'applications': self.results.get('applications', []),
+                    'content_management_systems': self.results.get('cms', []),
+                    'frameworks': self.results.get('frameworks', []),
+                    'cicd_platforms': self.results.get('cicd', []),
+                    'containerization_technologies': self.results.get('containers', [])
+                },
+                'api_detection': {
+                    'detected_apis': self.results.get('apis', []),
+                    'total_endpoints_tested': len(self.results.get('apis', []))
+                },
+                'cloud_services': self.results.get('cloud_services', []),
+                'security_assessment': {
+                    'common_vulnerabilities': self.results.get('vulnerabilities', []),
+                    'modern_vulnerabilities': self.results.get('modern_vulnerabilities', []),
+                    'security_headers': self.results.get('security_headers', {}),
+                    'exploit_results': {
+                        'web_exploits': self.results.get('web_exploits', []),
+                        'advanced_exploits': self.results.get('advanced_exploits', [])
+                    }
+                },
+                'risk_assessment': {
+                    'critical_vulnerabilities': len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'Critical']),
+                    'high_vulnerabilities': len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'High']),
+                    'medium_vulnerabilities': len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'Medium']),
+                    'low_vulnerabilities': len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'Low']),
+                    'overall_risk_level': self.calculate_risk_level()
+                },
+                'raw_scan_data': self.results  # Include original results for reference
+            }
+            
             with open(report_filename, 'w', encoding='utf-8') as f:
-                json.dump(self.results, f, ensure_ascii=False, indent=2)
+                json.dump(enhanced_results, f, ensure_ascii=False, indent=2, sort_keys=False)
             print(f"\n{Colors.GREEN}[+] تم حفظ التقرير الكامل في: {report_filename}{Colors.RESET}")
+            
+            # Create a summary report
+            summary_filename = report_filename.replace('.json', '_summary.json')
+            summary_data = {
+                'scan_metadata': enhanced_results['scan_metadata'],
+                'scan_summary': enhanced_results['scan_summary'],
+                'risk_assessment': enhanced_results['risk_assessment'],
+                'critical_findings': [
+                    vuln for vuln in 
+                    enhanced_results['security_assessment']['common_vulnerabilities'] + 
+                    enhanced_results['security_assessment']['modern_vulnerabilities']
+                    if vuln.get('severity') in ['Critical', 'High']
+                ]
+            }
+            
+            with open(summary_filename, 'w', encoding='utf-8') as f:
+                json.dump(summary_data, f, ensure_ascii=False, indent=2)
+            print(f"{Colors.GREEN}[+] تم حفظ تقرير الملخص في: {summary_filename}{Colors.RESET}")
+            
         except Exception as e:
             print(f"{Colors.RED}[-] فشل حفظ التقرير: {e}{Colors.RESET}")
+    
+    def calculate_risk_level(self):
+        """Calculate overall risk level based on vulnerabilities found"""
+        critical_count = len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'Critical'])
+        high_count = len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'High'])
+        medium_count = len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'Medium'])
+        
+        if critical_count > 0:
+            return 'CRITICAL'
+        elif high_count >= 3:
+            return 'HIGH'
+        elif high_count > 0 or medium_count >= 5:
+            return 'MEDIUM'
+        elif medium_count > 0:
+            return 'LOW'
+        else:
+            return 'MINIMAL'
+    
+    def run_modern_vulnerabilities_scan(self):
+        """Run modern vulnerability scans"""
+        print(f"{Colors.YELLOW}[*] Starting modern vulnerabilities scan{Colors.RESET}")
+        
+        try:
+            modern_scanner = ModernVulnerabilities(self.results['target'])
+            modern_results = modern_scanner.run_modern_scan()
+            
+            # Store results in main results
+            if 'modern_vulnerabilities' not in self.results:
+                self.results['modern_vulnerabilities'] = []
+            
+            self.results['modern_vulnerabilities'].extend(modern_results['vulnerabilities'])
+            
+            print(f"{Colors.GREEN}[+] Modern vulnerabilities scan completed{Colors.RESET}")
+            
+        except Exception as e:
+            print(f"{Colors.RED}[-] Error in modern vulnerabilities scan: {e}{Colors.RESET}")
     
     def run_full_scan(self):
         """تشغيل فحص شامل"""
         self.print_banner()
+        
+        # جمع معلومات DNS
+        self.gather_dns_info()
         
         # مسح المنافذ الشائعة
         common_ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 1433, 3306, 3389, 5432, 6379, 8080, 8443, 27017]
@@ -662,6 +1149,11 @@ class CheekScanner:
         self.detect_cicd()
         self.detect_containers()
         self.detect_vulnerabilities()
+        self.detect_modern_apis()
+        self.detect_cloud_services()
+        
+        # تشغيل فحص الثغرات الحديثة
+        self.run_modern_vulnerabilities_scan()
         
         # إنشاء التقرير
         self.generate_report()

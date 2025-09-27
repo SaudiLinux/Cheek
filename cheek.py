@@ -137,8 +137,8 @@ class CheekScanner:
         return open_ports
     
     def detect_web_server(self):
-        """الكشف عن خادم الويب"""
-        print(f"{Colors.YELLOW}[*] الكشف عن خوادم الويب...{Colors.RESET}")
+        """الكشف عن خادم الويب مع فحص شامل لإعدادات الخادم وتقنياته"""
+        print(f"{Colors.YELLOW}[*] الكشف عن خوادم الويب وإعدادات الخادم...{Colors.RESET}")
         
         try:
             # اختبار HTTP
@@ -149,51 +149,74 @@ class CheekScanner:
                 'type': 'Unknown',
                 'version': 'Unknown',
                 'method': 'HTTP Headers',
-                'port': 80
+                'port': 80,
+                'headers': {},
+                'ssl_info': {},
+                'validation_status': 'unchecked'
             }
             
-            # تحليل الرؤوس
+            # تحليل الرؤوس التفصيلي
             if 'Server' in response.headers:
                 server_header = response.headers['Server']
+                server_info['headers']['Server'] = server_header
                 
                 if 'Apache' in server_header:
                     server_info['type'] = 'Apache HTTP Server'
                     version_match = re.search(r'Apache/([\d.]+)', server_header)
                     if version_match:
                         server_info['version'] = version_match.group(1)
+                        # التحقق من صحة الإصدار
+                        server_info['validation_status'] = self.validate_server_version('Apache', version_match.group(1))
                 
                 elif 'nginx' in server_header.lower():
                     server_info['type'] = 'Nginx'
                     version_match = re.search(r'nginx/([\d.]+)', server_header)
                     if version_match:
                         server_info['version'] = version_match.group(1)
+                        server_info['validation_status'] = self.validate_server_version('Nginx', version_match.group(1))
                 
                 elif 'Microsoft-IIS' in server_header:
                     server_info['type'] = 'Microsoft IIS'
                     version_match = re.search(r'Microsoft-IIS/([\d.]+)', server_header)
                     if version_match:
                         server_info['version'] = version_match.group(1)
+                        server_info['validation_status'] = self.validate_server_version('IIS', version_match.group(1))
                 
                 elif 'lighttpd' in server_header.lower():
                     server_info['type'] = 'Lighttpd'
                     version_match = re.search(r'lighttpd/([\d.]+)', server_header)
                     if version_match:
                         server_info['version'] = version_match.group(1)
+                        server_info['validation_status'] = self.validate_server_version('Lighttpd', version_match.group(1))
                 
                 else:
                     server_info['type'] = server_header
+                    server_info['validation_status'] = 'unknown_server_type'
             
-            # اختبار HTTPS
+            # فحص رؤوس إضافية للخادم
+            important_headers = ['X-Powered-By', 'X-AspNet-Version', 'X-Generator', 'Via', 'X-Cache']
+            for header in important_headers:
+                if header in response.headers:
+                    server_info['headers'][header] = response.headers[header]
+            
+            # اختبار HTTPS مع فحص SSL/TLS شامل
             try:
                 https_url = f"https://{self.target}"
                 https_response = self.session.get(https_url, timeout=self.timeout, verify=False)
+                
+                # فحص الشهادة الأمنية
+                ssl_info = self.analyze_ssl_certificate()
+                server_info['ssl_info'] = ssl_info
                 
                 if 'Server' in https_response.headers:
                     https_server = {
                         'type': 'Unknown',
                         'version': 'Unknown',
                         'method': 'HTTPS Headers',
-                        'port': 443
+                        'port': 443,
+                        'headers': {},
+                        'ssl_info': ssl_info,
+                        'validation_status': 'unchecked'
                     }
                     
                     server_header = https_response.headers['Server']
@@ -205,12 +228,15 @@ class CheekScanner:
                         https_server['type'] = 'Microsoft IIS'
                     
                     self.results['web_servers'].append(https_server)
-                    print(f"{Colors.GREEN}[+] خادم ويب (HTTPS): {https_server['type']} على المنفذ 443{Colors.RESET}")
-            except:
+                    ssl_status = "✅" if ssl_info.get('grade', 'F') in ['A', 'A+'] else "⚠️" if ssl_info.get('grade', 'F') in ['B', 'C'] else "❌"
+                    print(f"{Colors.GREEN}[+] خادم ويب (HTTPS): {https_server['type']} على المنفذ 443 {ssl_status}{Colors.RESET}")
+            except Exception as ssl_error:
+                print(f"{Colors.YELLOW}[!] لا يمكن الوصول إلى HTTPS: {ssl_error}{Colors.RESET}")
                 pass
             
             self.results['web_servers'].append(server_info)
-            print(f"{Colors.GREEN}[+] خادم ويب (HTTP): {server_info['type']} {server_info['version']} على المنفذ 80{Colors.RESET}")
+            validation_icon = "✅" if server_info['validation_status'] == 'valid' else "⚠️" if server_info['validation_status'] == 'outdated' else "❌" if server_info['validation_status'] == 'vulnerable' else "❓"
+            print(f"{Colors.GREEN}[+] خادم ويب (HTTP): {server_info['type']} {server_info['version']} على المنفذ 80 {validation_icon}{Colors.RESET}")
             
         except requests.exceptions.Timeout:
             print(f"{Colors.YELLOW}[!] مهلة الاتصال لخادم الويب{Colors.RESET}")
@@ -915,9 +941,104 @@ class CheekScanner:
         for port in self.results['ports']:
             print(f"  - المنفذ {port}")
         
-        print(f"\n{Colors.BLUE}[+] خوادم الويب:{Colors.RESET}")
+        print(f"\n{Colors.BLUE}[+] خوادم الويب وإعداداتها:{Colors.RESET}")
         for server in self.results['web_servers']:
-            print(f"  - {server['type']} {server.get('version', '')} (المنفذ {server['port']})")
+            server_type = server.get('type', 'Unknown')
+            version = server.get('version', '')
+            port = server.get('port', 'Unknown')
+            validation_status = server.get('validation_status', 'unchecked')
+            
+            # عرض حالة التحقق من الإصدار
+            validation_icon = "✅" if validation_status == 'valid' else "⚠️" if validation_status == 'outdated' else "❌" if validation_status == 'vulnerable' else "❓"
+            print(f"  - {server_type} {version} (المنفذ: {port}) {validation_icon}")
+            
+            # عرض الرؤوس الإضافية
+            headers = server.get('headers', {})
+            if headers:
+                print(f"    الرؤوس الإضافية:")
+                for header, value in headers.items():
+                    print(f"      {header}: {value}")
+            
+            # عرض معلومات SSL/TLS
+            ssl_info = server.get('ssl_info', {})
+            if ssl_info and isinstance(ssl_info, dict) and ssl_info.get('certificate_valid'):
+                grade = ssl_info.get('grade', 'F')
+                days_until_expiry = ssl_info.get('days_until_expiry', 0)
+                protocols = ssl_info.get('protocols', [])
+                
+                grade_color = Colors.GREEN if grade in ['A', 'A+'] else Colors.YELLOW if grade in ['B', 'C'] else Colors.RED
+                print(f"    SSL/TLS: درجة {grade_color}{grade}{Colors.RESET} (تنتهي خلال {days_until_expiry} يوم)")
+                
+                if protocols and isinstance(protocols, list):
+                    secure_protocols = [p for p in protocols if p in ['TLSv1.2', 'TLSv1.3']]
+                    weak_protocols = [p for p in protocols if p in ['SSLv2', 'SSLv3', 'TLSv1.0', 'TLSv1.1']]
+                    
+                    if secure_protocols:
+                        print(f"    بروتوكولات آمنة: {', '.join(secure_protocols)}")
+                    if weak_protocols:
+                        print(f"    {Colors.YELLOW}بروتوكولات ضعيفة: {', '.join(weak_protocols)}{Colors.RESET}")
+                
+                # عرض تحذيرات SSL
+                warnings = ssl_info.get('warnings', [])
+                if warnings and isinstance(warnings, list):
+                    for warning in warnings:
+                        if isinstance(warning, str):
+                            print(f"    {Colors.YELLOW}⚠️ {warning}{Colors.RESET}")
+                
+                # عرض توصيات SSL Labs
+                ssl_labs = ssl_info.get('ssl_labs_check', {})
+                if ssl_labs and isinstance(ssl_labs, dict) and ssl_labs.get('recommendations'):
+                    recommendations = ssl_labs.get('recommendations', [])
+                    if recommendations and isinstance(recommendations, list):
+                        print(f"    توصيات الأمان:")
+                        for rec in recommendations:
+                            if isinstance(rec, str):
+                                print(f"      - {rec}")
+            else:
+                # عرض الخادم بدون تفاصيل SSL
+                print(f"  - {server_type} {version} (المنفذ {port})")
+        
+        # عرض تقرير التحقق من صحة البيانات
+        try:
+            print(f"\n{Colors.YELLOW}📋 تقرير التحقق من صحة إعدادات الخادم:{Colors.RESET}")
+            print(f"{Colors.YELLOW}{'-'*50}{Colors.RESET}")
+            
+            validation_report = self.validate_scan_results()
+            has_issues = False
+            
+            for server_val in validation_report['server_validation']:
+                print(f"{Colors.WHITE}🖥️  خادم: {server_val['server']} {server_val['version']}{Colors.RESET}")
+                print(f"{Colors.WHITE}   حالة التحقق: {server_val['validation_status']}{Colors.RESET}")
+                print(f"{Colors.WHITE}   درجة SSL: {server_val['ssl_grade']}{Colors.RESET}")
+                
+                if server_val['issues']:
+                    has_issues = True
+                    print(f"{Colors.RED}   ⚠️  مشكلات مكتشفة:{Colors.RESET}")
+                    for issue in server_val['issues']:
+                        print(f"{Colors.RED}      • {issue}{Colors.RESET}")
+                else:
+                    print(f"{Colors.GREEN}   ✅ لا توجد مشكلات حرجة{Colors.RESET}")
+                print()
+            
+            if validation_report['recommendations']:
+                print(f"{Colors.GREEN}💡 توصيات الأمان:{Colors.RESET}")
+                for rec in validation_report['recommendations']:
+                    print(f"{Colors.GREEN}   • {rec}{Colors.RESET}")
+                print()
+            
+            # تحذير عام إذا كانت هناك مشكلات
+            if has_issues:
+                print(f"{Colors.RED}🚨 تحذير: تم اكتشاف مشكلات أمنية في إعدادات الخادم!{Colors.RESET}")
+                print(f"{Colors.YELLOW}   ينصح باتخاذ إجراءات تصحيحية فورية.{Colors.RESET}")
+            else:
+                print(f"{Colors.GREEN}✅ لا توجد مشكلات أمنية حرجة في إعدادات الخادم.{Colors.RESET}")
+            
+            print(f"{Colors.YELLOW}{'-'*50}{Colors.RESET}")
+            print()
+            
+        except Exception as e:
+            print(f"{Colors.YELLOW}ℹ️ لم يتم إنشاء تقرير التحقق من الصحة: {str(e)}{Colors.RESET}")
+            print()
         
         print(f"\n{Colors.BLUE}[+] خوادم البريد الإلكتروني:{Colors.RESET}")
         for server in self.results['email_servers']:
@@ -1094,21 +1215,353 @@ class CheekScanner:
             print(f"{Colors.RED}[-] فشل حفظ التقرير: {e}{Colors.RESET}")
     
     def calculate_risk_level(self):
-        """Calculate overall risk level based on vulnerabilities found"""
+        """Calculate overall risk level based on vulnerabilities found and server configuration"""
         critical_count = len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'Critical'])
         high_count = len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'High'])
         medium_count = len([v for v in self.results.get('vulnerabilities', []) + self.results.get('modern_vulnerabilities', []) if v.get('severity') == 'Medium'])
         
-        if critical_count > 0:
+        # احتساب نقاط إضافية بناءً على إعدادات الخادم
+        server_risk_score = 0
+        
+        for server in self.results.get('web_servers', []):
+            # مخاطر الإصدار الضعيف
+            validation_status = server.get('validation_status', 'unchecked')
+            if validation_status == 'vulnerable':
+                server_risk_score += 50  # خطر عالٍ جداً
+            elif validation_status == 'outdated':
+                server_risk_score += 25  # خطر متوسط
+            
+            # مخاطر SSL/TLS
+            ssl_info = server.get('ssl_info', {})
+            if ssl_info:
+                grade = ssl_info.get('grade', 'F')
+                if grade in ['D', 'F']:
+                    server_risk_score += 30
+                elif grade in ['B', 'C']:
+                    server_risk_score += 15
+                
+                # تحذيرات الشهادة
+                warnings = ssl_info.get('warnings', [])
+                server_risk_score += len(warnings) * 5
+                
+                # البروتوكولات الضعيفة
+                protocols = ssl_info.get('protocols', [])
+                weak_protocols = [p for p in protocols if p in ['SSLv2', 'SSLv3', 'TLSv1.0']]
+                server_risk_score += len(weak_protocols) * 10
+        
+        # احتساب المخاطر الإجمالية
+        if critical_count > 0 or server_risk_score >= 50:
             return 'CRITICAL'
-        elif high_count >= 3:
+        elif high_count >= 3 or server_risk_score >= 30:
             return 'HIGH'
-        elif high_count > 0 or medium_count >= 5:
+        elif high_count > 0 or medium_count >= 5 or server_risk_score >= 15:
             return 'MEDIUM'
-        elif medium_count > 0:
+        elif medium_count > 0 or server_risk_score > 0:
             return 'LOW'
         else:
             return 'MINIMAL'
+    
+    def validate_scan_results(self):
+        """Validate the accuracy of detected server information and configurations"""
+        validation_report = {
+            'server_validation': [],
+            'ssl_validation': [],
+            'recommendations': []
+        }
+        
+        try:
+            for server in self.results.get('web_servers', []):
+                if not isinstance(server, dict):
+                    continue
+                    
+                server_validation = {
+                    'server': server.get('server', 'Unknown'),
+                    'version': server.get('version', 'Unknown'),
+                    'validation_status': server.get('validation_status', 'unchecked'),
+                    'ssl_grade': 'F',
+                    'issues': []
+                }
+                
+                # الحصول على درجة SSL بأمان
+                ssl_info = server.get('ssl_info', {})
+                if isinstance(ssl_info, dict):
+                    server_validation['ssl_grade'] = ssl_info.get('grade', 'F')
+                
+                # التحقق من صحة الإصدار
+                if server_validation['validation_status'] == 'vulnerable':
+                    server_validation['issues'].append(f"إصدار الخادم {server_validation['version']} يحتوي على ثغرات أمنية معروفة")
+                    validation_report['recommendations'].append(f"قم بتحديث {server_validation['server']} إلى أحدث إصدار فوراً")
+                
+                elif server_validation['validation_status'] == 'outdated':
+                    server_validation['issues'].append(f"إصدار الخادم {server_validation['version']} غير محدث")
+                    validation_report['recommendations'].append(f"ينصح بتحديث {server_validation['server']} إلى إصدار أحدث")
+                
+                # التحقق من SSL/TLS
+                if isinstance(ssl_info, dict):
+                    ssl_validation = {
+                        'certificate_issuer': ssl_info.get('issuer', 'Unknown'),
+                        'expiry_status': ssl_info.get('expiry_status', 'unknown'),
+                        'grade': ssl_info.get('grade', 'F'),
+                        'protocols': ssl_info.get('protocols', []),
+                        'warnings': ssl_info.get('warnings', [])
+                    }
+                    
+                    if ssl_validation['grade'] in ['D', 'F']:
+                        server_validation['issues'].append(f"تكوين SSL/TLS ضعيف (الدرجة: {ssl_validation['grade']})")
+                        validation_report['recommendations'].append("قم بتحسين تكوين SSL/TLS لتحسين الدرجة")
+                    
+                    if ssl_validation['expiry_status'] == 'expired':
+                        server_validation['issues'].append("شهادة SSL منتهية الصلاحية")
+                        validation_report['recommendations'].append("قم بتجديد شهادة SSL فوراً")
+                    
+                    elif ssl_validation['expiry_status'] == 'expiring_soon':
+                        server_validation['issues'].append("شهادة SSL ستنتهي قريباً")
+                        validation_report['recommendations'].append("خطط لتجديد شهادة SSL")
+                    
+                    # التحقق من البروتوكولات الضعيفة
+                    protocols = ssl_validation['protocols']
+                    if isinstance(protocols, list):
+                        weak_protocols = [p for p in protocols if p in ['SSLv2', 'SSLv3', 'TLSv1.0']]
+                        if weak_protocols:
+                            server_validation['issues'].append(f"بروتوكولات أمان قديمة مستخدمة: {', '.join(weak_protocols)}")
+                            validation_report['recommendations'].append("عطل البروتوكولات القديمة واستخدم TLS 1.2+ فقط")
+                
+                validation_report['server_validation'].append(server_validation)
+            
+            # إضافة توصيات عامة
+            if not validation_report['recommendations']:
+                validation_report['recommendations'].append("لا توجد مشكلات أمان حرجة في إعدادات الخادم")
+            
+            validation_report['recommendations'].append("ينصح بإجراء فحص دوري لإعدادات الخادم والشهادات")
+            validation_report['recommendations'].append("استخدم أدوات SSL Labs للتحقق المستقل من أمان SSL/TLS")
+            
+        except Exception as e:
+            validation_report['recommendations'].append(f"خطأ في التحقق من الصحة: {str(e)}")
+            validation_report['recommendations'].append("تحقق من إعدادات الخادم يدوياً أو استخدم أدوات خارجية")
+        
+        return validation_report
+    
+    def validate_server_version(self, server_type, version):
+        """التحقق من صحة وسلامة إصدار الخادم"""
+        try:
+            version_parts = version.split('.')
+            major_version = int(version_parts[0]) if version_parts else 0
+            
+            # قواعد التحقق لكل نوع خادم
+            validation_rules = {
+                'Apache': {
+                    'min_secure': 2.4,
+                    'max_secure': 2.4,
+                    'vulnerable_versions': ['1.3', '2.0', '2.2'],
+                    'current_stable': '2.4.58'
+                },
+                'Nginx': {
+                    'min_secure': 1.20,
+                    'max_secure': 1.25,
+                    'vulnerable_versions': ['1.0', '1.1', '1.2', '1.4', '1.6', '1.8'],
+                    'current_stable': '1.25.3'
+                },
+                'IIS': {
+                    'min_secure': 10.0,
+                    'max_secure': 10.0,
+                    'vulnerable_versions': ['5.0', '5.1', '6.0', '7.0', '7.5'],
+                    'current_stable': '10.0'
+                },
+                'Lighttpd': {
+                    'min_secure': 1.4,
+                    'max_secure': 1.4,
+                    'vulnerable_versions': ['1.3'],
+                    'current_stable': '1.4.73'
+                }
+            }
+            
+            if server_type not in validation_rules:
+                return 'unknown_server_type'
+            
+            rules = validation_rules[server_type]
+            version_float = float('.'.join(version_parts[:2]))
+            
+            # التحقق من الإصدارات الضعيفة المعروفة
+            for vuln_version in rules['vulnerable_versions']:
+                if version.startswith(vuln_version):
+                    return 'vulnerable'
+            
+            # التحقق من الإصدار الحديث الأدنى
+            if version_float >= rules['min_secure']:
+                return 'valid'
+            else:
+                return 'outdated'
+                
+        except (ValueError, IndexError):
+            return 'invalid_version'
+    
+    def analyze_ssl_certificate(self):
+        """تحليل الشهادة الأمنية SSL/TLS"""
+        ssl_info = {
+            'certificate_valid': False,
+            'issuer': 'Unknown',
+            'subject': 'Unknown',
+            'valid_from': 'Unknown',
+            'valid_until': 'Unknown',
+            'days_until_expiry': 0,
+            'grade': 'F',
+            'protocols': [],
+            'cipher_suites': [],
+            'warnings': [],
+            'ssl_labs_check': 'unchecked'
+        }
+        
+        try:
+            import ssl
+            import socket
+            from datetime import datetime
+            from urllib.parse import urlparse
+            
+            # استخراج المعلومات الأساسية
+            hostname = self.target
+            port = 443
+            
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            
+            with socket.create_connection((hostname, port), timeout=self.timeout) as sock:
+                with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+                    cert = ssock.getpeercert()
+                    
+                    # تحليل الشهادة
+                    ssl_info['certificate_valid'] = True
+                    ssl_info['issuer'] = dict(x[0] for x in cert['issuer']).get('organizationName', 'Unknown')
+                    ssl_info['subject'] = dict(x[0] for x in cert['subject']).get('commonName', 'Unknown')
+                    
+                    # التحقق من صلاحية الشهادة
+                    not_before = datetime.strptime(cert['notBefore'], '%b %d %H:%M:%S %Y %Z')
+                    not_after = datetime.strptime(cert['notAfter'], '%b %d %H:%M:%S %Y %Z')
+                    ssl_info['valid_from'] = not_before.strftime('%Y-%m-%d')
+                    ssl_info['valid_until'] = not_after.strftime('%Y-%m-%d')
+                    
+                    days_until_expiry = (not_after - datetime.now()).days
+                    ssl_info['days_until_expiry'] = days_until_expiry
+                    
+                    if days_until_expiry < 30:
+                        ssl_info['warnings'].append(f'الشهادة تنتهي خلال {days_until_expiry} يوم')
+                    
+                    # فحص بروتوكولات SSL/TLS
+                    ssl_info['protocols'] = self.check_ssl_protocols()
+                    
+                    # تقييم الأمان
+                    ssl_info['grade'] = self.calculate_ssl_grade(ssl_info)
+                    
+                    # محاولة فحص SSL Labs (محاكاة)
+                    ssl_info['ssl_labs_check'] = self.simulate_ssl_labs_check(ssl_info)
+                    
+        except Exception as e:
+            ssl_info['warnings'].append(f'فشل فحص SSL: {str(e)}')
+        
+        return ssl_info
+    
+    def check_ssl_protocols(self):
+        """فحص بروتوكولات SSL/TLS المدعومة"""
+        protocols = []
+        
+        try:
+            import ssl
+            import socket
+            
+            # قائمة البروتوكولات للاختبار
+            protocol_tests = [
+                ('SSLv2', ssl.PROTOCOL_SSLv2 if hasattr(ssl, 'PROTOCOL_SSLv2') else None),
+                ('SSLv3', ssl.PROTOCOL_SSLv3 if hasattr(ssl, 'PROTOCOL_SSLv3') else None),
+                ('TLSv1.0', ssl.PROTOCOL_TLSv1 if hasattr(ssl, 'PROTOCOL_TLSv1') else None),
+                ('TLSv1.1', ssl.PROTOCOL_TLSv1_1 if hasattr(ssl, 'PROTOCOL_TLSv1_1') else None),
+                ('TLSv1.2', ssl.PROTOCOL_TLSv1_2 if hasattr(ssl, 'PROTOCOL_TLSv1_2') else None),
+                ('TLSv1.3', 'TLSv1.3')  # يجب التحقق يدوياً
+            ]
+            
+            hostname = self.target
+            port = 443
+            
+            for proto_name, proto_const in protocol_tests:
+                if proto_const is None:
+                    continue
+                    
+                try:
+                    context = ssl.SSLContext(proto_const)
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                    
+                    with socket.create_connection((hostname, port), timeout=5) as sock:
+                        with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+                            protocols.append(proto_name)
+                except:
+                    pass  # البروتوكول غير مدعوم
+            
+        except Exception:
+            pass
+        
+        return protocols
+    
+    def calculate_ssl_grade(self, ssl_info):
+        """حساب درجة SSL/TLS"""
+        grade_score = 0
+        
+        # نقاط بناءً على البروتوكولات
+        secure_protocols = ['TLSv1.2', 'TLSv1.3']
+        weak_protocols = ['SSLv2', 'SSLv3', 'TLSv1.0', 'TLSv1.1']
+        
+        for protocol in ssl_info['protocols']:
+            if protocol in secure_protocols:
+                grade_score += 25
+            elif protocol in weak_protocols:
+                grade_score -= 10
+        
+        # نقاط بناءً على صلاحية الشهادة
+        if ssl_info['certificate_valid']:
+            grade_score += 30
+        
+        if ssl_info['days_until_expiry'] > 30:
+            grade_score += 20
+        elif ssl_info['days_until_expiry'] > 7:
+            grade_score += 10
+        
+        # نقاط خصم للتحذيرات
+        grade_score -= len(ssl_info['warnings']) * 5
+        
+        # تحويل النقاط إلى درجة حرفية
+        if grade_score >= 90:
+            return 'A+'
+        elif grade_score >= 80:
+            return 'A'
+        elif grade_score >= 70:
+            return 'B'
+        elif grade_score >= 60:
+            return 'C'
+        elif grade_score >= 50:
+            return 'D'
+        else:
+            return 'F'
+    
+    def simulate_ssl_labs_check(self, ssl_info):
+        """محاكاة فحص SSL Labs"""
+        labs_result = {
+            'grade': ssl_info['grade'],
+            'has_warnings': len(ssl_info['warnings']) > 0,
+            'protocols_score': len([p for p in ssl_info['protocols'] if p in ['TLSv1.2', 'TLSv1.3']]) * 25,
+            'certificate_score': 100 if ssl_info['certificate_valid'] else 0,
+            'recommendations': []
+        }
+        
+        # توصيات بناءً على النتائج
+        if 'TLSv1.3' not in ssl_info['protocols']:
+            labs_result['recommendations'].append('تمكين TLS 1.3 لأمان محسن')
+        
+        if any(proto in ssl_info['protocols'] for proto in ['SSLv2', 'SSLv3', 'TLSv1.0']):
+            labs_result['recommendations'].append('تعطيل البروتوكولات الضعيفة')
+        
+        if ssl_info['days_until_expiry'] < 30:
+            labs_result['recommendations'].append('تجديد الشهادة قبل انتهاء الصلاحية')
+        
+        return labs_result
     
     def run_modern_vulnerabilities_scan(self):
         """Run modern vulnerability scans"""

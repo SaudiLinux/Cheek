@@ -33,6 +33,8 @@ from exploits.web_exploits import WebExploits
 from exploits.advanced_exploits import AdvancedExploits
 from exploits.modern_vulnerabilities import ModernVulnerabilities
 from advanced_tests import AdvancedSecurityTester
+from exploits.cloud_exploits import CloudExploits
+from exploits.cloud_exploits import CloudExploits
 
 # Initialize colorama for Windows compatibility
 init(autoreset=True)
@@ -88,7 +90,9 @@ class CheekScanner:
             'dns_info': [],
             'subdomains': [],
             'apis': [],
-            'cloud_services': []
+            'cloud_services': [],
+            'cloud_exploitation': [],
+            'cloud_vulnerabilities': []
         }
         
     def print_banner(self):
@@ -1693,7 +1697,125 @@ class CheekScanner:
             print(f"{Colors.RED}[-] خطأ في اختبار رؤوس الأمان المتقدم: {e}{Colors.RESET}")
             return None
     
-    def run_full_scan(self):
+    def run_cloud_exploitation_scan(self):
+        """تشغيل فحص استغلال الخدمات السحابية"""
+        print(f"{Colors.YELLOW}[*] بدء فحص استغلال الخدمات السحابية...{Colors.RESET}")
+        
+        try:
+            cloud_exploits = CloudExploits(self.target, self.threads)
+            report_file = cloud_exploits.run_all_exploits()
+            
+            # قراءة نتائج التقرير
+            import json
+            with open(report_file, 'r') as f:
+                cloud_results = json.load(f)
+            
+            # تخزين النتائج
+            self.results['cloud_exploitation'] = cloud_results
+            
+            # طباعة النتائج
+            self.print_cloud_exploitation_results(cloud_results)
+            
+            print(f"{Colors.GREEN}[+] اكتمل فحص استغلال الخدمات السحابية{Colors.RESET}")
+            return cloud_results
+            
+        except Exception as e:
+            print(f"{Colors.RED}[-] خطأ في فحص استغلال الخدمات السحابية: {e}{Colors.RESET}")
+            return None
+    
+    def run_cloud_vulnerability_scan(self):
+        """تشغيل فحص الثغرات السحابية"""
+        print(f"{Colors.YELLOW}[*] بدء فحص الثغرات السحابية...{Colors.RESET}")
+        
+        try:
+            # استخدام CloudExploits للفحص الشامل
+            cloud_scanner = CloudExploits(self.target, self.threads)
+            report_file = cloud_scanner.run_all_exploits()
+            
+            # قراءة نتائج التقرير
+            import json
+            with open(report_file, 'r') as f:
+                vulnerability_results = json.load(f)
+            
+            # تخزين النتائج
+            self.results['cloud_vulnerabilities'] = vulnerability_results
+            
+            # طباعة النتائج
+            self.print_cloud_vulnerabilities_results(vulnerability_results)
+            
+            print(f"{Colors.GREEN}[+] اكتمل فحص الثغرات السحابية{Colors.RESET}")
+            return vulnerability_results
+            
+        except Exception as e:
+            print(f"{Colors.RED}[-] خطأ في فحص الثغرات السحابية: {e}{Colors.RESET}")
+            return None
+    
+    def print_cloud_exploitation_results(self, cloud_results):
+        """طباعة نتائج استغلال الخدمات السحابية"""
+        print(f"\n{Colors.YELLOW}[*] نتائج استغلال الخدمات السحابية:{Colors.RESET}")
+        
+        if cloud_results.get('vulnerabilities'):
+            # تصفية النتائج لتجنب رسائل المعلومات
+            real_vulnerabilities = [v for v in cloud_results['vulnerabilities'] if v.get('severity') != 'INFO']
+            
+            if real_vulnerabilities:
+                print(f"{Colors.RED}[!] تم العثور على {len(real_vulnerabilities)} ثغرة سحابية:{Colors.RESET}")
+                for vuln in real_vulnerabilities:
+                    severity = vuln.get('severity', 'unknown').lower()
+                    severity_color = Colors.RED if severity == 'critical' else Colors.YELLOW if severity == 'high' else Colors.CYAN
+                    vuln_type = vuln.get('status', 'Unknown')
+                    description = vuln.get('details', 'No description available')
+                    print(f"{severity_color}    • {vuln_type} - خطورة: {severity} - {description}{Colors.RESET}")
+                    if vuln.get('url'):
+                        print(f"{Colors.CYAN}      الرابط: {vuln['url']}{Colors.RESET}")
+            else:
+                print(f"{Colors.GREEN}[+] لم يتم العثور على ثغرات سحابية قابلة للاستغلال{Colors.RESET}")
+        else:
+            print(f"{Colors.GREEN}[+] لم يتم العثور على ثغرات سحابية قابلة للاستغلال{Colors.RESET}")
+        
+        if cloud_results.get('cloud_provider'):
+            print(f"{Colors.CYAN}[*] مزود الخدمة السحابية المكتشف: {cloud_results['cloud_provider']}{Colors.RESET}")
+        elif cloud_results.get('scan_metadata', {}).get('cloud_provider'):
+            print(f"{Colors.CYAN}[*] مزود الخدمة السحابية المكتشف: {cloud_results['scan_metadata']['cloud_provider']}{Colors.RESET}")
+        
+        # عرض إحصائيات المخاطر
+        if cloud_results.get('risk_assessment'):
+            risk = cloud_results['risk_assessment']
+            print(f"{Colors.YELLOW}[*] إحصائيات المخاطر:{Colors.RESET}")
+            print(f"{Colors.RED}    • حرجة: {risk.get('critical_count', 0)}{Colors.RESET}")
+            print(f"{Colors.YELLOW}    • عالية: {risk.get('high_count', 0)}{Colors.RESET}")
+            print(f"{Colors.CYAN}    • متوسطة: {risk.get('medium_count', 0)}{Colors.RESET}")
+            print(f"{Colors.GREEN}    • منخفضة: {risk.get('low_count', 0)}{Colors.RESET}")
+    
+    def print_cloud_vulnerabilities_results(self, vulnerability_results):
+        """طباعة نتائج فحص الثغرات السحابية"""
+        print(f"\n{Colors.YELLOW}[*] نتائج فحص الثغرات السحابية:{Colors.RESET}")
+        
+        if vulnerability_results.get('vulnerabilities'):
+            # تصفية النتائج لتجنب رسائل المعلومات
+            real_vulnerabilities = [v for v in vulnerability_results['vulnerabilities'] if v.get('severity') != 'INFO']
+            
+            if real_vulnerabilities:
+                critical_count = sum(1 for v in real_vulnerabilities if v.get('severity', '').lower() == 'critical')
+                high_count = sum(1 for v in real_vulnerabilities if v.get('severity', '').lower() == 'high')
+                medium_count = sum(1 for v in real_vulnerabilities if v.get('severity', '').lower() == 'medium')
+                
+                print(f"{Colors.RED}[!] إحصائيات الثغرات السحابية:{Colors.RESET}")
+                print(f"{Colors.RED}    • حرجة: {critical_count}{Colors.RESET}")
+                print(f"{Colors.YELLOW}    • عالية: {high_count}{Colors.RESET}")
+                print(f"{Colors.CYAN}    • متوسطة: {medium_count}{Colors.RESET}")
+                
+                print(f"{Colors.YELLOW}[*] تفاصيل الثغرات:{Colors.RESET}")
+                for vuln in real_vulnerabilities:
+                    severity = vuln.get('severity', 'unknown').lower()
+                    severity_color = Colors.RED if severity == 'critical' else Colors.YELLOW if severity == 'high' else Colors.CYAN
+                    vuln_type = vuln.get('status', 'Unknown')
+                    description = vuln.get('details', 'No description available')
+                    print(f"{severity_color}    • {vuln_type} ({severity}): {description}{Colors.RESET}")
+            else:
+                print(f"{Colors.GREEN}[+] لم يتم العثور على ثغرات سحابية{Colors.RESET}")
+        else:
+            print(f"{Colors.GREEN}[+] لم يتم العثور على ثغرات سحابية{Colors.RESET}")
         """تشغيل فحص شامل"""
         self.print_banner()
         
@@ -1715,6 +1837,10 @@ class CheekScanner:
         self.detect_vulnerabilities()
         self.detect_modern_apis()
         self.detect_cloud_services()
+        
+        # تشغيل فحص الاستغلال السحابي الجديد
+        self.run_cloud_exploitation_scan()
+        self.run_cloud_vulnerability_scan()
         
         # تشغيل فحص الثغرات الحديثة
         self.run_modern_vulnerabilities_scan()
@@ -1746,6 +1872,11 @@ def main():
     parser.add_argument('--security-headers-test', action='store_true', help='تشغيل اختبار رؤوس الأمان المتقدم فقط')
     parser.add_argument('--advanced-tests', action='store_true', help='تشغيل جميع الاختبارات المتقدمة فقط')
     
+    # خيارات الاستغلال السحابي الجديدة
+    parser.add_argument('--cloud-exploit', action='store_true', help='تشغيل فحص استغلال الخدمات السحابية فقط')
+    parser.add_argument('--cloud-vulns', action='store_true', help='تشغيل فحص الثغرات السحابية فقط')
+    parser.add_argument('--cloud-tests', action='store_true', help='تشغيل جميع اختبارات الخدمات السحابية فقط')
+    
     args = parser.parse_args()
     
     scanner = CheekScanner(args.target, args.threads, args.timeout)
@@ -1772,6 +1903,24 @@ def main():
             scanner.print_cors_results(cors_results)
             scanner.print_http_methods_results(http_results)
             scanner.print_security_headers_results(headers_results)
+        elif args.cloud_exploit:
+            print(f"{Colors.YELLOW}[*] تشغيل فحص استغلال الخدمات السحابية فقط...{Colors.RESET}")
+            cloud_results = scanner.run_cloud_exploitation_scan()
+            if cloud_results:
+                scanner.print_cloud_exploitation_results(cloud_results)
+        elif args.cloud_vulns:
+            print(f"{Colors.YELLOW}[*] تشغيل فحص الثغرات السحابية فقط...{Colors.RESET}")
+            vuln_results = scanner.run_cloud_vulnerability_scan()
+            if vuln_results:
+                scanner.print_cloud_vulnerabilities_results(vuln_results)
+        elif args.cloud_tests:
+            print(f"{Colors.YELLOW}[*] تشغيل جميع اختبارات الخدمات السحابية...{Colors.RESET}")
+            cloud_results = scanner.run_cloud_exploitation_scan()
+            vuln_results = scanner.run_cloud_vulnerability_scan()
+            if cloud_results:
+                scanner.print_cloud_exploitation_results(cloud_results)
+            if vuln_results:
+                scanner.print_cloud_vulnerabilities_results(vuln_results)
         else:
             # تشغيل الفحص الكامل الافتراضي
             scanner.run_full_scan()

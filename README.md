@@ -94,6 +94,17 @@ Cheek هو أداة فحص أمني متقدمة مصممة للكشف عن مخ
 - **Advanced Exploits** - استغلال SQL Injection والثغرات المتقدمة
 - **Modern Vulnerabilities** - استغلال الثغرات الحديثة (GraphQL، JWT، SSRF)
 
+### ☁️ قدرات الاستغلال السحابي المتقدمة
+الأداة الآن تتضمن نظام استغلال سحابي شامل:
+- **استغلال خدمة البيانات الوصفية** - AWS IMDSv1، Azure Instance Metadata Service
+- **استغلال S3 Buckets** - اكتشاف واستغلال حاويات S3 العامة
+- **استغلال Azure Blob Storage** - فحص التخزين العام في Azure
+- **استغلال Kubernetes APIs** - اكتشاف واجهات Kubernetes المكشوفة
+- **استغلال واجهات API السحابية** - اكتشاف واجهات برمجة التطبيقات غير المصادقة
+- **فحص الحاويات السحابية** - اكتشاف ثغرات Docker وKubernetes
+- **استغلال خدمات GCP** - فحص خدمات Google Cloud Platform
+- **أدوات الاستغلال السحابي الموحدة** - وحدة متكاملة لجميع المميزات السحابية
+
 ## التثبيت
 
 ### المتطلبات
@@ -112,6 +123,9 @@ Cheek هو أداة فحص أمني متقدمة مصممة للكشف عن مخ
 - selenium >= 4.0.0
 - xmltodict >= 0.13.0
 - configparser >= 5.3.0
+- boto3 >= 1.26.0 (لاستغلال AWS)
+- azure-storage-blob >= 12.14.0 (لاستغلال Azure)
+- google-cloud-storage >= 2.7.0 (لاستغلال GCP)
 
 ### خطوات التثبيت
 
@@ -151,6 +165,18 @@ python cheek.py example.com --ports 80 443 3306 5432
 
 # حفظ التقرير في ملف محدد
 python cheek.py example.com --output my_report.json
+
+# فحص الاستغلال السحابي فقط
+python cheek.py example.com --cloud-exploit
+
+# فحص الثغرات السحابية فقط
+python cheek.py example.com --cloud-vulns
+
+# تشغيل جميع فحوصات السحابة
+python cheek.py example.com --cloud-tests
+
+# استخدام الفاحص السحابي الموحد
+python unified_cloud_scanner.py example.com -v
 ```
 
 ### تقارير JSON المحسنة
@@ -168,6 +194,13 @@ python cheek.py example.com --output my_report.json
 يتم إنشاء ملفين JSON:
 - **تقرير كامل** - يحتوي على جميع البيانات التفصيلية
 - **تقرير ملخص** - يحتوي على أهم النتائج والثغرات الحرجة
+
+### تقارير الاستغلال السحابي
+عند استخدام خيارات السحابة، تتضمن التقارير:
+- **نتائج استغلال الخدمات السحابية** - S3، Azure Blob، Kubernetes APIs
+- **مسارات الاستغلال** - خطوات استغلال كل ثغرة
+- **توصيات الإصلاح** - خطوات تأمين كل خدمة سحابية
+- **تصنيف المخاطر السحابية** - مستويات الخطورة لكل ثغرة سحابية
 ```
 
 ### الخيارات المتاحة
@@ -255,6 +288,8 @@ python cheek.py target.com --output full_scan.json
 [+] تم حفظ التقارير إلى:
     - example.com_report.json (تقرير كامل)
     - example.com_summary.json (تقرير ملخص)
+    - cloud_exploitation_report.json (تقرير استغلال سحابي)
+    - unified_cloud_scan_*.json (تقرير فحص سحابي موحد)
 ```
 
 ## المبرمج

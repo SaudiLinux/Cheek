@@ -1,0 +1,737 @@
+{
+  "scan_metadata": {
+    "target": "jaco.live",
+    "scan_time": "2025-09-27T05:38:42.646439",
+    "scanner_version": "2.0",
+    "total_scan_duration": "Unknown"
+  },
+  "scan_summary": {
+    "total_services_detected": 0,
+    "total_vulnerabilities": 7,
+    "total_applications": 0,
+    "total_frameworks": 0,
+    "total_apis": 20,
+    "cloud_services_detected": 0,
+    "dns_records_found": 8,
+    "total_open_ports": 4
+  },
+  "dns_information": [
+    {
+      "type": "A Record",
+      "value": "170.33.13.38",
+      "description": "IPv4 Address"
+    },
+    {
+      "type": "MX Record",
+      "value": "jaco-live.mail.protection.outlook.com.",
+      "priority": 1,
+      "description": "Mail Exchange"
+    },
+    {
+      "type": "TXT Record",
+      "value": "v=spf1 include:spf.protection.outlook.com -all",
+      "description": "Text Record"
+    },
+    {
+      "type": "TXT Record",
+      "value": "globalsign-domain-verification=n6XwK_oaJjd7QnHH2D9Y6SqKFJpqmkWsZg5J9Lx7Kk",
+      "description": "Text Record"
+    },
+    {
+      "type": "TXT Record",
+      "value": "google-site-verification=c8pR5ULN_w1h1sWfhkkQGJ1oICMTD7mEOCSBIOLU18I",
+      "description": "Text Record"
+    },
+    {
+      "type": "TXT Record",
+      "value": "bhprbb90sjncdc6pqq9kphdtgp",
+      "description": "Text Record"
+    },
+    {
+      "type": "NS Record",
+      "value": "vip8.alidns.com.",
+      "description": "Name Server"
+    },
+    {
+      "type": "NS Record",
+      "value": "vip7.alidns.com.",
+      "description": "Name Server"
+    }
+  ],
+  "network_services": {
+    "open_ports": [
+      80,
+      443,
+      8080,
+      8443
+    ],
+    "web_servers": [
+      {
+        "type": "Unknown",
+        "version": "Unknown",
+        "method": "HTTPS Headers",
+        "port": 443,
+        "headers": {},
+        "ssl_info": {
+          "certificate_valid": true,
+          "issuer": "Unknown",
+          "subject": "Unknown",
+          "valid_from": "Unknown",
+          "valid_until": "Unknown",
+          "days_until_expiry": 0,
+          "grade": "F",
+          "protocols": [],
+          "cipher_suites": [],
+          "warnings": [
+            "فشل فحص SSL: 'issuer'"
+          ],
+          "ssl_labs_check": "unchecked"
+        },
+        "validation_status": "unchecked"
+      },
+      {
+        "type": "cloudflare",
+        "version": "Unknown",
+        "method": "HTTP Headers",
+        "port": 80,
+        "headers": {
+          "Server": "cloudflare"
+        },
+        "ssl_info": {
+          "certificate_valid": true,
+          "issuer": "Unknown",
+          "subject": "Unknown",
+          "valid_from": "Unknown",
+          "valid_until": "Unknown",
+          "days_until_expiry": 0,
+          "grade": "F",
+          "protocols": [],
+          "cipher_suites": [],
+          "warnings": [
+            "فشل فحص SSL: 'issuer'"
+          ],
+          "ssl_labs_check": "unchecked"
+        },
+        "validation_status": "unknown_server_type"
+      }
+    ],
+    "email_servers": [],
+    "databases": []
+  },
+  "applications_and_technologies": {
+    "applications": [],
+    "content_management_systems": [],
+    "frameworks": [],
+    "cicd_platforms": [],
+    "containerization_technologies": [
+      {
+        "type": "Kubernetes",
+        "service": "Kubernetes Dashboard",
+        "port": 8080
+      }
+    ]
+  },
+  "api_detection": {
+    "detected_apis": [
+      {
+        "endpoint": "/api/v1",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/v2",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/v3",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/rest/api",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/graphql",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/swagger-ui.html",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api-docs",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/v1/api-docs",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/openapi.json",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/swagger.json",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/swagger.json",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/health",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/status",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/info",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/users",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/auth",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/login",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/register",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/profile",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/settings",
+        "status": 403,
+        "note": "API access forbidden"
+      }
+    ],
+    "total_endpoints_tested": 20
+  },
+  "cloud_services": [],
+  "security_assessment": {
+    "common_vulnerabilities": [
+      {
+        "type": "Missing X-XSS-Protection",
+        "severity": "Low",
+        "description": "رأس الأمان X-XSS-Protection مفقود: XSS Protection"
+      },
+      {
+        "type": "Missing Content-Security-Policy",
+        "severity": "Low",
+        "description": "رأس الأمان Content-Security-Policy مفقود: Content Security Policy"
+      }
+    ],
+    "modern_vulnerabilities": [
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api/v1",
+        "endpoint": "/api/v1",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api/v2",
+        "endpoint": "/api/v2",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api",
+        "endpoint": "/api",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /rest",
+        "endpoint": "/rest",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /rest/api",
+        "endpoint": "/rest/api",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      }
+    ],
+    "security_headers": {},
+    "exploit_results": {
+      "web_exploits": [],
+      "advanced_exploits": []
+    }
+  },
+  "risk_assessment": {
+    "critical_vulnerabilities": 0,
+    "high_vulnerabilities": 0,
+    "medium_vulnerabilities": 0,
+    "low_vulnerabilities": 7,
+    "overall_risk_level": "CRITICAL"
+  },
+  "raw_scan_data": {
+    "target": "jaco.live",
+    "scan_time": "2025-09-27T05:38:42.646439",
+    "web_servers": [
+      {
+        "type": "Unknown",
+        "version": "Unknown",
+        "method": "HTTPS Headers",
+        "port": 443,
+        "headers": {},
+        "ssl_info": {
+          "certificate_valid": true,
+          "issuer": "Unknown",
+          "subject": "Unknown",
+          "valid_from": "Unknown",
+          "valid_until": "Unknown",
+          "days_until_expiry": 0,
+          "grade": "F",
+          "protocols": [],
+          "cipher_suites": [],
+          "warnings": [
+            "فشل فحص SSL: 'issuer'"
+          ],
+          "ssl_labs_check": "unchecked"
+        },
+        "validation_status": "unchecked"
+      },
+      {
+        "type": "cloudflare",
+        "version": "Unknown",
+        "method": "HTTP Headers",
+        "port": 80,
+        "headers": {
+          "Server": "cloudflare"
+        },
+        "ssl_info": {
+          "certificate_valid": true,
+          "issuer": "Unknown",
+          "subject": "Unknown",
+          "valid_from": "Unknown",
+          "valid_until": "Unknown",
+          "days_until_expiry": 0,
+          "grade": "F",
+          "protocols": [],
+          "cipher_suites": [],
+          "warnings": [
+            "فشل فحص SSL: 'issuer'"
+          ],
+          "ssl_labs_check": "unchecked"
+        },
+        "validation_status": "unknown_server_type"
+      }
+    ],
+    "email_servers": [],
+    "databases": [],
+    "frameworks": [],
+    "cms": [],
+    "cicd": [],
+    "containers": [
+      {
+        "type": "Kubernetes",
+        "service": "Kubernetes Dashboard",
+        "port": 8080
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "type": "Missing X-XSS-Protection",
+        "severity": "Low",
+        "description": "رأس الأمان X-XSS-Protection مفقود: XSS Protection"
+      },
+      {
+        "type": "Missing Content-Security-Policy",
+        "severity": "Low",
+        "description": "رأس الأمان Content-Security-Policy مفقود: Content Security Policy"
+      }
+    ],
+    "ports": [
+      80,
+      443,
+      8080,
+      8443
+    ],
+    "dns_info": [
+      {
+        "type": "A Record",
+        "value": "170.33.13.38",
+        "description": "IPv4 Address"
+      },
+      {
+        "type": "MX Record",
+        "value": "jaco-live.mail.protection.outlook.com.",
+        "priority": 1,
+        "description": "Mail Exchange"
+      },
+      {
+        "type": "TXT Record",
+        "value": "v=spf1 include:spf.protection.outlook.com -all",
+        "description": "Text Record"
+      },
+      {
+        "type": "TXT Record",
+        "value": "globalsign-domain-verification=n6XwK_oaJjd7QnHH2D9Y6SqKFJpqmkWsZg5J9Lx7Kk",
+        "description": "Text Record"
+      },
+      {
+        "type": "TXT Record",
+        "value": "google-site-verification=c8pR5ULN_w1h1sWfhkkQGJ1oICMTD7mEOCSBIOLU18I",
+        "description": "Text Record"
+      },
+      {
+        "type": "TXT Record",
+        "value": "bhprbb90sjncdc6pqq9kphdtgp",
+        "description": "Text Record"
+      },
+      {
+        "type": "NS Record",
+        "value": "vip8.alidns.com.",
+        "description": "Name Server"
+      },
+      {
+        "type": "NS Record",
+        "value": "vip7.alidns.com.",
+        "description": "Name Server"
+      }
+    ],
+    "subdomains": [],
+    "apis": [
+      {
+        "endpoint": "/api/v1",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/v2",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/v3",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/rest/api",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/graphql",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/swagger-ui.html",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api-docs",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/v1/api-docs",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/openapi.json",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/swagger.json",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/swagger.json",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/health",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/status",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/info",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/users",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/auth",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/login",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/register",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/profile",
+        "status": 403,
+        "note": "API access forbidden"
+      },
+      {
+        "endpoint": "/api/settings",
+        "status": 403,
+        "note": "API access forbidden"
+      }
+    ],
+    "cloud_services": [],
+    "modern_vulnerabilities": [
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api/v1",
+        "endpoint": "/api/v1",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api/v2",
+        "endpoint": "/api/v2",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api",
+        "endpoint": "/api",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /rest",
+        "endpoint": "/rest",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /rest/api",
+        "endpoint": "/rest/api",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      }
+    ],
+    "advanced_cors": {
+      "vulnerable_endpoints": [],
+      "exploitation_details": []
+    },
+    "advanced_cors_vulnerabilities": {
+      "vulnerable_endpoints": [],
+      "exploitation_details": []
+    },
+    "advanced_http_methods": {
+      "dangerous_methods": [],
+      "method_override_vulnerabilities": [],
+      "exploitation_details": []
+    },
+    "advanced_http_methods_vulnerabilities": {
+      "dangerous_methods": [],
+      "method_override_vulnerabilities": [],
+      "exploitation_details": []
+    },
+    "advanced_security_headers": {
+      "missing_headers": [
+        {
+          "url": "https://jaco.live/",
+          "missing": [
+            "X-XSS-Protection",
+            "Content-Security-Policy"
+          ],
+          "severity": "متوسطة"
+        },
+        {
+          "url": "https://jaco.live/login",
+          "missing": [
+            "X-XSS-Protection",
+            "Content-Security-Policy"
+          ],
+          "severity": "متوسطة"
+        },
+        {
+          "url": "https://jaco.live/admin",
+          "missing": [
+            "X-XSS-Protection",
+            "Content-Security-Policy"
+          ],
+          "severity": "متوسطة"
+        }
+      ],
+      "misconfigured_headers": [],
+      "exploitation_details": [
+        "لا يوجد حماية XSS في https://jaco.live/",
+        "لا يوجد حماية XSS في https://jaco.live/login",
+        "لا يوجد حماية XSS في https://jaco.live/admin"
+      ]
+    },
+    "advanced_security_headers_vulnerabilities": {
+      "missing_headers": [
+        {
+          "url": "https://jaco.live/",
+          "missing": [
+            "X-XSS-Protection",
+            "Content-Security-Policy"
+          ],
+          "severity": "متوسطة"
+        },
+        {
+          "url": "https://jaco.live/login",
+          "missing": [
+            "X-XSS-Protection",
+            "Content-Security-Policy"
+          ],
+          "severity": "متوسطة"
+        },
+        {
+          "url": "https://jaco.live/admin",
+          "missing": [
+            "X-XSS-Protection",
+            "Content-Security-Policy"
+          ],
+          "severity": "متوسطة"
+        }
+      ],
+      "misconfigured_headers": [],
+      "exploitation_details": [
+        "لا يوجد حماية XSS في https://jaco.live/",
+        "لا يوجد حماية XSS في https://jaco.live/login",
+        "لا يوجد حماية XSS في https://jaco.live/admin"
+      ]
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "scan_metadata": {
+    "target": "httpbin.org",
+    "scan_time": "2025-09-27T04:19:18.779326",
+    "scanner_version": "2.0",
+    "total_scan_duration": "Unknown"
+  },
+  "scan_summary": {
+    "total_services_detected": 0,
+    "total_vulnerabilities": 16,
+    "total_applications": 0,
+    "total_frameworks": 0,
+    "total_apis": 0,
+    "cloud_services_detected": 0,
+    "dns_records_found": 11,
+    "total_open_ports": 2
+  },
+  "risk_assessment": {
+    "critical_vulnerabilities": 0,
+    "high_vulnerabilities": 0,
+    "medium_vulnerabilities": 5,
+    "low_vulnerabilities": 11,
+    "overall_risk_level": "CRITICAL"
+  },
+  "critical_findings": []
+}

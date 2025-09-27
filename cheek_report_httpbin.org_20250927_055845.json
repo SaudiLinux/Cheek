@@ -1,0 +1,749 @@
+{
+  "scan_metadata": {
+    "target": "httpbin.org",
+    "scan_time": "2025-09-27T05:50:16.550088",
+    "scanner_version": "2.0",
+    "total_scan_duration": "Unknown"
+  },
+  "scan_summary": {
+    "total_services_detected": 0,
+    "total_vulnerabilities": 16,
+    "total_applications": 0,
+    "total_frameworks": 0,
+    "total_apis": 0,
+    "cloud_services_detected": 0,
+    "dns_records_found": 11,
+    "total_open_ports": 2
+  },
+  "dns_information": [
+    {
+      "type": "A Record",
+      "value": "34.236.61.135",
+      "description": "IPv4 Address"
+    },
+    {
+      "type": "A Record",
+      "value": "52.204.95.73",
+      "description": "IPv4 Address"
+    },
+    {
+      "type": "A Record",
+      "value": "34.225.98.78",
+      "description": "IPv4 Address"
+    },
+    {
+      "type": "A Record",
+      "value": "44.207.255.255",
+      "description": "IPv4 Address"
+    },
+    {
+      "type": "A Record",
+      "value": "98.85.20.193",
+      "description": "IPv4 Address"
+    },
+    {
+      "type": "A Record",
+      "value": "44.195.242.49",
+      "description": "IPv4 Address"
+    },
+    {
+      "type": "TXT Record",
+      "value": "v=spf1 -all",
+      "description": "Text Record"
+    },
+    {
+      "type": "NS Record",
+      "value": "ns-1053.awsdns-03.org.",
+      "description": "Name Server"
+    },
+    {
+      "type": "NS Record",
+      "value": "ns-1555.awsdns-02.co.uk.",
+      "description": "Name Server"
+    },
+    {
+      "type": "NS Record",
+      "value": "ns-173.awsdns-21.com.",
+      "description": "Name Server"
+    },
+    {
+      "type": "NS Record",
+      "value": "ns-884.awsdns-46.net.",
+      "description": "Name Server"
+    }
+  ],
+  "network_services": {
+    "open_ports": [
+      443,
+      80
+    ],
+    "web_servers": [
+      {
+        "type": "Unknown",
+        "version": "Unknown",
+        "method": "HTTPS Headers",
+        "port": 443,
+        "headers": {},
+        "ssl_info": {
+          "certificate_valid": true,
+          "issuer": "Unknown",
+          "subject": "Unknown",
+          "valid_from": "Unknown",
+          "valid_until": "Unknown",
+          "days_until_expiry": 0,
+          "grade": "F",
+          "protocols": [],
+          "cipher_suites": [],
+          "warnings": [
+            "فشل فحص SSL: 'issuer'"
+          ],
+          "ssl_labs_check": "unchecked"
+        },
+        "validation_status": "unchecked"
+      },
+      {
+        "type": "gunicorn/19.9.0",
+        "version": "Unknown",
+        "method": "HTTP Headers",
+        "port": 80,
+        "headers": {
+          "Server": "gunicorn/19.9.0"
+        },
+        "ssl_info": {
+          "certificate_valid": true,
+          "issuer": "Unknown",
+          "subject": "Unknown",
+          "valid_from": "Unknown",
+          "valid_until": "Unknown",
+          "days_until_expiry": 0,
+          "grade": "F",
+          "protocols": [],
+          "cipher_suites": [],
+          "warnings": [
+            "فشل فحص SSL: 'issuer'"
+          ],
+          "ssl_labs_check": "unchecked"
+        },
+        "validation_status": "unknown_server_type"
+      }
+    ],
+    "email_servers": [],
+    "databases": []
+  },
+  "applications_and_technologies": {
+    "applications": [],
+    "content_management_systems": [],
+    "frameworks": [],
+    "cicd_platforms": [],
+    "containerization_technologies": []
+  },
+  "api_detection": {
+    "detected_apis": [],
+    "total_endpoints_tested": 0
+  },
+  "cloud_services": [],
+  "security_assessment": {
+    "common_vulnerabilities": [
+      {
+        "type": "Missing X-Frame-Options",
+        "severity": "Low",
+        "description": "رأس الأمان X-Frame-Options مفقود: Clickjacking Protection"
+      },
+      {
+        "type": "Missing X-Content-Type-Options",
+        "severity": "Low",
+        "description": "رأس الأمان X-Content-Type-Options مفقود: MIME Sniffing Protection"
+      },
+      {
+        "type": "Missing X-XSS-Protection",
+        "severity": "Low",
+        "description": "رأس الأمان X-XSS-Protection مفقود: XSS Protection"
+      },
+      {
+        "type": "Missing Strict-Transport-Security",
+        "severity": "Low",
+        "description": "رأس الأمان Strict-Transport-Security مفقود: HTTPS Enforcement"
+      },
+      {
+        "type": "Missing Content-Security-Policy",
+        "severity": "Low",
+        "description": "رأس الأمان Content-Security-Policy مفقود: Content Security Policy"
+      },
+      {
+        "type": "Server Version Disclosure",
+        "severity": "Low",
+        "description": "تم الكشف عن إصدار الخادم: gunicorn/19.9.0"
+      }
+    ],
+    "modern_vulnerabilities": [
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /api/v1",
+        "endpoint": "/api/v1",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api/v1",
+        "endpoint": "/api/v1",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /api/v2",
+        "endpoint": "/api/v2",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api/v2",
+        "endpoint": "/api/v2",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /api",
+        "endpoint": "/api",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api",
+        "endpoint": "/api",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /rest",
+        "endpoint": "/rest",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /rest",
+        "endpoint": "/rest",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /rest/api",
+        "endpoint": "/rest/api",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /rest/api",
+        "endpoint": "/rest/api",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      }
+    ],
+    "security_headers": {},
+    "exploit_results": {
+      "web_exploits": [],
+      "advanced_exploits": []
+    }
+  },
+  "risk_assessment": {
+    "critical_vulnerabilities": 0,
+    "high_vulnerabilities": 0,
+    "medium_vulnerabilities": 5,
+    "low_vulnerabilities": 11,
+    "overall_risk_level": "CRITICAL"
+  },
+  "raw_scan_data": {
+    "target": "httpbin.org",
+    "scan_time": "2025-09-27T05:50:16.550088",
+    "web_servers": [
+      {
+        "type": "Unknown",
+        "version": "Unknown",
+        "method": "HTTPS Headers",
+        "port": 443,
+        "headers": {},
+        "ssl_info": {
+          "certificate_valid": true,
+          "issuer": "Unknown",
+          "subject": "Unknown",
+          "valid_from": "Unknown",
+          "valid_until": "Unknown",
+          "days_until_expiry": 0,
+          "grade": "F",
+          "protocols": [],
+          "cipher_suites": [],
+          "warnings": [
+            "فشل فحص SSL: 'issuer'"
+          ],
+          "ssl_labs_check": "unchecked"
+        },
+        "validation_status": "unchecked"
+      },
+      {
+        "type": "gunicorn/19.9.0",
+        "version": "Unknown",
+        "method": "HTTP Headers",
+        "port": 80,
+        "headers": {
+          "Server": "gunicorn/19.9.0"
+        },
+        "ssl_info": {
+          "certificate_valid": true,
+          "issuer": "Unknown",
+          "subject": "Unknown",
+          "valid_from": "Unknown",
+          "valid_until": "Unknown",
+          "days_until_expiry": 0,
+          "grade": "F",
+          "protocols": [],
+          "cipher_suites": [],
+          "warnings": [
+            "فشل فحص SSL: 'issuer'"
+          ],
+          "ssl_labs_check": "unchecked"
+        },
+        "validation_status": "unknown_server_type"
+      }
+    ],
+    "email_servers": [],
+    "databases": [],
+    "frameworks": [],
+    "cms": [],
+    "cicd": [],
+    "containers": [],
+    "vulnerabilities": [
+      {
+        "type": "Missing X-Frame-Options",
+        "severity": "Low",
+        "description": "رأس الأمان X-Frame-Options مفقود: Clickjacking Protection"
+      },
+      {
+        "type": "Missing X-Content-Type-Options",
+        "severity": "Low",
+        "description": "رأس الأمان X-Content-Type-Options مفقود: MIME Sniffing Protection"
+      },
+      {
+        "type": "Missing X-XSS-Protection",
+        "severity": "Low",
+        "description": "رأس الأمان X-XSS-Protection مفقود: XSS Protection"
+      },
+      {
+        "type": "Missing Strict-Transport-Security",
+        "severity": "Low",
+        "description": "رأس الأمان Strict-Transport-Security مفقود: HTTPS Enforcement"
+      },
+      {
+        "type": "Missing Content-Security-Policy",
+        "severity": "Low",
+        "description": "رأس الأمان Content-Security-Policy مفقود: Content Security Policy"
+      },
+      {
+        "type": "Server Version Disclosure",
+        "severity": "Low",
+        "description": "تم الكشف عن إصدار الخادم: gunicorn/19.9.0"
+      }
+    ],
+    "ports": [
+      443,
+      80
+    ],
+    "dns_info": [
+      {
+        "type": "A Record",
+        "value": "34.236.61.135",
+        "description": "IPv4 Address"
+      },
+      {
+        "type": "A Record",
+        "value": "52.204.95.73",
+        "description": "IPv4 Address"
+      },
+      {
+        "type": "A Record",
+        "value": "34.225.98.78",
+        "description": "IPv4 Address"
+      },
+      {
+        "type": "A Record",
+        "value": "44.207.255.255",
+        "description": "IPv4 Address"
+      },
+      {
+        "type": "A Record",
+        "value": "98.85.20.193",
+        "description": "IPv4 Address"
+      },
+      {
+        "type": "A Record",
+        "value": "44.195.242.49",
+        "description": "IPv4 Address"
+      },
+      {
+        "type": "TXT Record",
+        "value": "v=spf1 -all",
+        "description": "Text Record"
+      },
+      {
+        "type": "NS Record",
+        "value": "ns-1053.awsdns-03.org.",
+        "description": "Name Server"
+      },
+      {
+        "type": "NS Record",
+        "value": "ns-1555.awsdns-02.co.uk.",
+        "description": "Name Server"
+      },
+      {
+        "type": "NS Record",
+        "value": "ns-173.awsdns-21.com.",
+        "description": "Name Server"
+      },
+      {
+        "type": "NS Record",
+        "value": "ns-884.awsdns-46.net.",
+        "description": "Name Server"
+      }
+    ],
+    "subdomains": [],
+    "apis": [],
+    "cloud_services": [],
+    "modern_vulnerabilities": [
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /api/v1",
+        "endpoint": "/api/v1",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api/v1",
+        "endpoint": "/api/v1",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /api/v2",
+        "endpoint": "/api/v2",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api/v2",
+        "endpoint": "/api/v2",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /api",
+        "endpoint": "/api",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /api",
+        "endpoint": "/api",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /rest",
+        "endpoint": "/rest",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /rest",
+        "endpoint": "/rest",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "type": "CORS Misconfiguration",
+        "severity": "Medium",
+        "description": "CORS allows requests from any origin on /rest/api",
+        "endpoint": "/rest/api",
+        "allowed_origin": "https://evil.com"
+      },
+      {
+        "type": "Excessive HTTP Methods",
+        "severity": "Low",
+        "description": "Too many HTTP methods allowed on /rest/api",
+        "endpoint": "/rest/api",
+        "allowed_methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "HEAD",
+          "OPTIONS"
+        ]
+      }
+    ],
+    "advanced_cors": {
+      "vulnerable_endpoints": [
+        {
+          "url": "https://httpbin.org/",
+          "severity": "عالية",
+          "exploitable": "قابلة للاستغلال",
+          "issue": "CORS يسمح بالأصل الخبيث: https://evil.com",
+          "credentials": true
+        },
+        {
+          "url": "https://httpbin.org/api",
+          "severity": "عالية",
+          "exploitable": "قابلة للاستغلال",
+          "issue": "CORS يسمح بالأصل الخبيث: https://evil.com",
+          "credentials": true
+        },
+        {
+          "url": "https://httpbin.org/login",
+          "severity": "عالية",
+          "exploitable": "قابلة للاستغلال",
+          "issue": "CORS يسمح بالأصل الخبيث: https://evil.com",
+          "credentials": true
+        },
+        {
+          "url": "https://httpbin.org/admin",
+          "severity": "عالية",
+          "exploitable": "قابلة للاستغلال",
+          "issue": "CORS يسمح بالأصل الخبيث: https://evil.com",
+          "credentials": true
+        }
+      ],
+      "exploitation_details": [
+        "يمكن سرقة بيانات الاعتماد من https://httpbin.org/",
+        "يمكن سرقة بيانات الاعتماد من https://httpbin.org/api",
+        "يمكن سرقة بيانات الاعتماد من https://httpbin.org/login",
+        "يمكن سرقة بيانات الاعتماد من https://httpbin.org/admin"
+      ]
+    },
+    "advanced_cors_vulnerabilities": {
+      "vulnerable_endpoints": [
+        {
+          "url": "https://httpbin.org/",
+          "severity": "عالية",
+          "exploitable": "قابلة للاستغلال",
+          "issue": "CORS يسمح بالأصل الخبيث: https://evil.com",
+          "credentials": true
+        },
+        {
+          "url": "https://httpbin.org/api",
+          "severity": "عالية",
+          "exploitable": "قابلة للاستغلال",
+          "issue": "CORS يسمح بالأصل الخبيث: https://evil.com",
+          "credentials": true
+        },
+        {
+          "url": "https://httpbin.org/login",
+          "severity": "عالية",
+          "exploitable": "قابلة للاستغلال",
+          "issue": "CORS يسمح بالأصل الخبيث: https://evil.com",
+          "credentials": true
+        },
+        {
+          "url": "https://httpbin.org/admin",
+          "severity": "عالية",
+          "exploitable": "قابلة للاستغلال",
+          "issue": "CORS يسمح بالأصل الخبيث: https://evil.com",
+          "credentials": true
+        }
+      ],
+      "exploitation_details": [
+        "يمكن سرقة بيانات الاعتماد من https://httpbin.org/",
+        "يمكن سرقة بيانات الاعتماد من https://httpbin.org/api",
+        "يمكن سرقة بيانات الاعتماد من https://httpbin.org/login",
+        "يمكن سرقة بيانات الاعتماد من https://httpbin.org/admin"
+      ]
+    },
+    "advanced_http_methods": {
+      "dangerous_methods": [],
+      "method_override_vulnerabilities": [],
+      "exploitation_details": []
+    },
+    "advanced_http_methods_vulnerabilities": {
+      "dangerous_methods": [],
+      "method_override_vulnerabilities": [],
+      "exploitation_details": []
+    },
+    "advanced_security_headers": {
+      "missing_headers": [
+        {
+          "url": "https://httpbin.org/",
+          "missing": [
+            "X-Frame-Options",
+            "X-Content-Type-Options",
+            "X-XSS-Protection",
+            "Strict-Transport-Security",
+            "Content-Security-Policy"
+          ],
+          "severity": "عالية"
+        },
+        {
+          "url": "https://httpbin.org/login",
+          "missing": [
+            "X-Frame-Options",
+            "X-Content-Type-Options",
+            "X-XSS-Protection",
+            "Strict-Transport-Security",
+            "Content-Security-Policy"
+          ],
+          "severity": "عالية"
+        },
+        {
+          "url": "https://httpbin.org/admin",
+          "missing": [
+            "X-Frame-Options",
+            "X-Content-Type-Options",
+            "X-XSS-Protection",
+            "Strict-Transport-Security",
+            "Content-Security-Policy"
+          ],
+          "severity": "عالية"
+        }
+      ],
+      "misconfigured_headers": [],
+      "exploitation_details": [
+        "يمكن تضمين https://httpbin.org/ في iframe",
+        "لا يوجد حماية XSS في https://httpbin.org/",
+        "يمكن تضمين https://httpbin.org/login في iframe",
+        "لا يوجد حماية XSS في https://httpbin.org/login",
+        "يمكن تضمين https://httpbin.org/admin في iframe",
+        "لا يوجد حماية XSS في https://httpbin.org/admin"
+      ]
+    },
+    "advanced_security_headers_vulnerabilities": {
+      "missing_headers": [
+        {
+          "url": "https://httpbin.org/",
+          "missing": [
+            "X-Frame-Options",
+            "X-Content-Type-Options",
+            "X-XSS-Protection",
+            "Strict-Transport-Security",
+            "Content-Security-Policy"
+          ],
+          "severity": "عالية"
+        },
+        {
+          "url": "https://httpbin.org/login",
+          "missing": [
+            "X-Frame-Options",
+            "X-Content-Type-Options",
+            "X-XSS-Protection",
+            "Strict-Transport-Security",
+            "Content-Security-Policy"
+          ],
+          "severity": "عالية"
+        },
+        {
+          "url": "https://httpbin.org/admin",
+          "missing": [
+            "X-Frame-Options",
+            "X-Content-Type-Options",
+            "X-XSS-Protection",
+            "Strict-Transport-Security",
+            "Content-Security-Policy"
+          ],
+          "severity": "عالية"
+        }
+      ],
+      "misconfigured_headers": [],
+      "exploitation_details": [
+        "يمكن تضمين https://httpbin.org/ في iframe",
+        "لا يوجد حماية XSS في https://httpbin.org/",
+        "يمكن تضمين https://httpbin.org/login في iframe",
+        "لا يوجد حماية XSS في https://httpbin.org/login",
+        "يمكن تضمين https://httpbin.org/admin في iframe",
+        "لا يوجد حماية XSS في https://httpbin.org/admin"
+      ]
+    }
+  }
+}

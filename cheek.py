@@ -32,6 +32,7 @@ import nmap
 from exploits.web_exploits import WebExploits
 from exploits.advanced_exploits import AdvancedExploits
 from exploits.modern_vulnerabilities import ModernVulnerabilities
+from advanced_tests import AdvancedSecurityTester
 
 # Initialize colorama for Windows compatibility
 init(autoreset=True)
@@ -1582,6 +1583,116 @@ class CheekScanner:
         except Exception as e:
             print(f"{Colors.RED}[-] Error in modern vulnerabilities scan: {e}{Colors.RESET}")
     
+    def print_cors_results(self, cors_results):
+        """طباعة نتائج اختبار CORS المتقدم"""
+        print(f"\n{Colors.YELLOW}[*] نتائج اختبار CORS المتقدم:{Colors.RESET}")
+        
+        if cors_results['vulnerable_endpoints']:
+            print(f"{Colors.RED}[!] تم العثور على {len(cors_results['vulnerable_endpoints'])} نقاط ضعف CORS:{Colors.RESET}")
+            for endpoint in cors_results['vulnerable_endpoints']:
+                print(f"{Colors.RED}    • {endpoint['url']} - خطورة: {endpoint['severity']} - الاستغلال: {endpoint['exploitable']}{Colors.RESET}")
+        else:
+            print(f"{Colors.GREEN}[+] لا توجد ثغرات CORS حرجة{Colors.RESET}")
+        
+        if cors_results['exploitation_details']:
+            print(f"{Colors.YELLOW}[*] تفاصيل الاستغلال:{Colors.RESET}")
+            for detail in cors_results['exploitation_details']:
+                print(f"{Colors.CYAN}    - {detail}{Colors.RESET}")
+    
+    def run_advanced_cors_test(self):
+        """تشغيل اختبار CORS المتقدم"""
+        print(f"{Colors.YELLOW}[*] بدء اختبار CORS المتقدم...{Colors.RESET}")
+        
+        try:
+            tester = AdvancedSecurityTester(self.target)
+            cors_results = tester.test_cors_vulnerabilities()
+            
+            # تخزين النتائج
+            self.results['advanced_cors'] = cors_results
+            
+            print(f"{Colors.GREEN}[+] اكتمل اختبار CORS المتقدم{Colors.RESET}")
+            return cors_results
+            
+        except Exception as e:
+            print(f"{Colors.RED}[-] خطأ في اختبار CORS المتقدم: {e}{Colors.RESET}")
+            return None
+    
+    def print_http_methods_results(self, http_results):
+        """طباعة نتائج اختبار طرق HTTP المتقدم"""
+        print(f"\n{Colors.YELLOW}[*] نتائج اختبار طرق HTTP المتقدم:{Colors.RESET}")
+        
+        if http_results['dangerous_methods']:
+            print(f"{Colors.RED}[!] تم العثور على {len(http_results['dangerous_methods'])} طريقة خطرة:{Colors.RESET}")
+            for method in http_results['dangerous_methods']:
+                print(f"{Colors.RED}    • {method['method']} - {method['url']} - خطورة: {method['severity']}{Colors.RESET}")
+        
+        if http_results['method_override_vulnerabilities']:
+            print(f"{Colors.RED}[!] تم العثور على {len(http_results['method_override_vulnerabilities'])} ثغرة تجاوز الطرق:{Colors.RESET}")
+            for vuln in http_results['method_override_vulnerabilities']:
+                print(f"{Colors.RED}    • {vuln['method']} عبر {vuln['header']} - {vuln['url']}{Colors.RESET}")
+        
+        if http_results['exploitation_details']:
+            print(f"{Colors.YELLOW}[*] تفاصيل الاستغلال:{Colors.RESET}")
+            for detail in http_results['exploitation_details']:
+                print(f"{Colors.CYAN}    - {detail}{Colors.RESET}")
+    
+    def run_advanced_http_methods_test(self):
+        """تشغيل اختبار طرق HTTP المتقدم"""
+        print(f"{Colors.YELLOW}[*] بدء اختبار طرق HTTP المتقدم...{Colors.RESET}")
+        
+        try:
+            tester = AdvancedSecurityTester(self.target)
+            http_results = tester.test_http_methods()
+            
+            # تخزين النتائج
+            self.results['advanced_http_methods'] = http_results
+            
+            print(f"{Colors.GREEN}[+] اكتمل اختبار طرق HTTP المتقدم{Colors.RESET}")
+            return http_results
+            
+        except Exception as e:
+            print(f"{Colors.RED}[-] خطأ في اختبار طرق HTTP المتقدم: {e}{Colors.RESET}")
+            return None
+    
+    def print_security_headers_results(self, headers_results):
+        """طباعة نتائج اختبار رؤوس الأمان المتقدم"""
+        print(f"\n{Colors.YELLOW}[*] نتائج اختبار رؤوس الأمان المتقدم:{Colors.RESET}")
+        
+        if headers_results['missing_headers']:
+            print(f"{Colors.RED}[!] رؤوس الأمان المفقودة:{Colors.RESET}")
+            for endpoint in headers_results['missing_headers']:
+                print(f"{Colors.RED}    • {endpoint['url']}:{Colors.RESET}")
+                for header in endpoint['missing']:
+                    print(f"{Colors.RED}      - {header}{Colors.RESET}")
+        
+        if headers_results['misconfigured_headers']:
+            print(f"{Colors.YELLOW}[!] رؤوس الأمان غير المهيأة بشكل صحيح:{Colors.RESET}")
+            for header in headers_results['misconfigured_headers']:
+                print(f"{Colors.YELLOW}    • {header['header']} في {header['url']} - مشكلة: {header['issue']}{Colors.RESET}")
+        
+        if headers_results['exploitation_details']:
+            print(f"{Colors.YELLOW}[*] تفاصيل الاستغلال:{Colors.RESET}")
+            for detail in headers_results['exploitation_details']:
+                print(f"{Colors.CYAN}    - {detail}{Colors.RESET}")
+    
+    def run_advanced_security_headers_test(self):
+        """تشغيل اختبار رؤوس الأمان المتقدم"""
+        print(f"{Colors.YELLOW}[*] بدء اختبار رؤوس الأمان المتقدم...{Colors.RESET}")
+        
+        try:
+            tester = AdvancedSecurityTester(self.target)
+            headers_results = tester.test_security_headers()
+            
+            # تخزين النتائج
+            self.results['advanced_security_headers'] = headers_results
+            
+            print(f"{Colors.GREEN}[+] اكتمل اختبار رؤوس الأمان المتقدم{Colors.RESET}")
+            return headers_results
+            
+        except Exception as e:
+            print(f"{Colors.RED}[-] خطأ في اختبار رؤوس الأمان المتقدم: {e}{Colors.RESET}")
+            return None
+    
     def run_full_scan(self):
         """تشغيل فحص شامل"""
         self.print_banner()
@@ -1608,6 +1719,11 @@ class CheekScanner:
         # تشغيل فحص الثغرات الحديثة
         self.run_modern_vulnerabilities_scan()
         
+        # تشغيل الاختبارات المتقدمة الجديدة
+        self.results['advanced_cors_vulnerabilities'] = self.run_advanced_cors_test()
+        self.results['advanced_http_methods_vulnerabilities'] = self.run_advanced_http_methods_test()
+        self.results['advanced_security_headers_vulnerabilities'] = self.run_advanced_security_headers_test()
+        
         # إنشاء التقرير
         self.generate_report()
 
@@ -1624,12 +1740,41 @@ def main():
     parser.add_argument('--ports', nargs='+', type=int, help='المنافذ المحددة للفحص')
     parser.add_argument('--output', help='ملف الإخراج للتقرير')
     
+    # خيارات الاختبارات المتقدمة الجديدة
+    parser.add_argument('--cors-test', action='store_true', help='تشغيل اختبار CORS المتقدم فقط')
+    parser.add_argument('--http-methods-test', action='store_true', help='تشغيل اختبار طرق HTTP المتقدم فقط')
+    parser.add_argument('--security-headers-test', action='store_true', help='تشغيل اختبار رؤوس الأمان المتقدم فقط')
+    parser.add_argument('--advanced-tests', action='store_true', help='تشغيل جميع الاختبارات المتقدمة فقط')
+    
     args = parser.parse_args()
     
     scanner = CheekScanner(args.target, args.threads, args.timeout)
     
     try:
-        scanner.run_full_scan()
+        # تشغيل الاختبارات المحددة فقط
+        if args.cors_test:
+            print(f"{Colors.YELLOW}[*] تشغيل اختبار CORS المتقدم فقط...{Colors.RESET}")
+            cors_results = scanner.run_advanced_cors_test()
+            scanner.print_cors_results(cors_results)
+        elif args.http_methods_test:
+            print(f"{Colors.YELLOW}[*] تشغيل اختبار طرق HTTP المتقدم فقط...{Colors.RESET}")
+            http_results = scanner.run_advanced_http_methods_test()
+            scanner.print_http_methods_results(http_results)
+        elif args.security_headers_test:
+            print(f"{Colors.YELLOW}[*] تشغيل اختبار رؤوس الأمان المتقدم فقط...{Colors.RESET}")
+            headers_results = scanner.run_advanced_security_headers_test()
+            scanner.print_security_headers_results(headers_results)
+        elif args.advanced_tests:
+            print(f"{Colors.YELLOW}[*] تشغيل جميع الاختبارات المتقدمة...{Colors.RESET}")
+            cors_results = scanner.run_advanced_cors_test()
+            http_results = scanner.run_advanced_http_methods_test()
+            headers_results = scanner.run_advanced_security_headers_test()
+            scanner.print_cors_results(cors_results)
+            scanner.print_http_methods_results(http_results)
+            scanner.print_security_headers_results(headers_results)
+        else:
+            # تشغيل الفحص الكامل الافتراضي
+            scanner.run_full_scan()
     except KeyboardInterrupt:
         print(f"\n{Colors.RED}[!] تم إيقاف الفحص بواسطة المستخدم{Colors.RESET}")
         sys.exit(1)

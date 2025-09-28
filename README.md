@@ -178,6 +178,15 @@ python cheek.py example.com --cloud-tests
 # استخدام الفاحص السحابي الموحد
 python unified_cloud_scanner.py example.com -v
 ```
+# فحص سريع
+./cloud_security_scanner.sh target.com quick
+
+# فحص شامل  
+./cloud_security_scanner.sh target.com full --threads 20
+
+# فحص تجريبي
+./cloud_security_scanner.sh target.com demo
+
 
 ### تقارير JSON المحسنة
 الأداة الآن تنتج تقارير JSON متقدمة تحتوي على:

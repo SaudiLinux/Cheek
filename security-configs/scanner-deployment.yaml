@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-security-scanner
+  namespace: default
+  labels:
+    app: cloud-security-scanner
+    version: v1.0.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-security-scanner
+  template:
+    metadata:
+      labels:
+        app: cloud-security-scanner
+        version: v1.0.0
+    spec:
+      serviceAccountName: cloud-security-scanner
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: security-scanner
+        image: cloud-security-scanner:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: SCANNER_MODE
+          value: "kubernetes"
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KUBERNETES_SERVICE_ACCOUNT
+          value: "cloud-security-scanner"
+        - name: SCANNER_LOG_LEVEL
+          value: "INFO"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: scanner-config
+          mountPath: /app/config
+          readOnly: true
+        - name: scanner-reports
+          mountPath: /app/reports
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: scanner-config
+        configMap:
+          name: cloud-security-scanner-config
+      - name: scanner-reports
+        emptyDir: {}
+      - name: tmp-volume
+        emptyDir: {}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

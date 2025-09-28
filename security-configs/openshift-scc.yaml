@@ -1,0 +1,48 @@
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: cloud-security-scanner-scc
+  annotations:
+    kubernetes.io/description: "Security context constraints for cloud security scanner - minimal privileges"
+    release.openshift.io/create-only: "true"
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: MustRunAs
+  ranges:
+  - min: 1000
+    max: 1000
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+- ALL
+runAsUser:
+  type: MustRunAsRange
+  uidRangeMin: 1000
+  uidRangeMax: 1000
+seLinuxContext:
+  type: MustRunAs
+  uidRangeMin: 1000
+  uidRangeMax: 1000
+seccompProfiles:
+- runtime/default
+supplementalGroups:
+  type: MustRunAs
+  ranges:
+  - min: 1000
+    max: 1000
+users:
+- system:serviceaccount:default:cloud-security-scanner
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret

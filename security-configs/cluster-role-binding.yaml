@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cloud-security-scanner-binding
+  labels:
+    app: cloud-security-scanner
+    role: security-audit
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cloud-security-scanner-role
+subjects:
+- kind: ServiceAccount
+  name: cloud-security-scanner
+  namespace: default

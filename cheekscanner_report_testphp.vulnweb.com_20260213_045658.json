@@ -1,0 +1,31 @@
+{
+  "target": "testphp.vulnweb.com",
+  "scan_start": "2026-02-13T04:56:58.194577",
+  "scan_end": "2026-02-13T04:56:58.201174",
+  "duration": 0.01,
+  "vulnerabilities": [],
+  "security_issues": [],
+  "recommendations": [
+    "Review and patch identified vulnerabilities",
+    "Implement security headers",
+    "Regular security assessments recommended"
+  ],
+  "risk_assessment": {
+    "overall_risk": "LOW",
+    "vulnerability_count": 0,
+    "recommendation": "Risk level: LOW"
+  },
+  "ml_detections": [],
+  "advanced_analytics": {
+    "basic_stats": "analytics_placeholder"
+  },
+  "reconnaissance": {
+    "target_info": {
+      "target": "testphp.vulnweb.com",
+      "scan_time": "2026-02-13T04:56:58.195586"
+    },
+    "subdomains": [],
+    "technologies": {},
+    "attack_surface": {}
+  }
+}

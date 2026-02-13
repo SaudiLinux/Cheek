@@ -1992,13 +1992,13 @@ class CheekScanner:
         # Phase 1: Basic Reconnaissance
         print(f"\n{Colors.YELLOW}[*] Phase 1: Basic Reconnaissance{Colors.RESET}")
         self.detect_web_server()
-        self.scan_email_servers()
-        self.scan_databases()
+        self.detect_email_servers()
+        self.detect_databases()
         self.detect_frameworks()
         self.detect_cms()
         self.detect_cicd()
         self.detect_containers()
-        self.scan_dns_info()
+        self.gather_dns_info()
         
         # Phase 2: Port Scanning
         print(f"\n{Colors.YELLOW}[*] Phase 2: Port Scanning{Colors.RESET}")
@@ -2095,6 +2095,9 @@ def main():
     parser.add_argument('--ml-detect', action='store_true', help='تشغيل الكشف عن التهديدات باستخدام التعلم الآلي فقط')
     parser.add_argument('--ml-full', action='store_true', help='تشغيل الفحص الكامل مع التعلم الآلي')
     
+    # خيارات الثغرات الحديثة
+    parser.add_argument('--modern-vulns', action='store_true', help='تشغيل فحص الثغرات الحديثة فقط')
+    
     args = parser.parse_args()
     
     scanner = CheekScanner(args.target, args.threads, args.timeout)
@@ -2144,6 +2147,11 @@ def main():
             ml_results = scanner.run_ml_threat_detection()
             if ml_results:
                 scanner.print_ml_threat_detection_results(ml_results)
+        elif args.modern_vulns:
+            print(f"{Colors.YELLOW}[*] تشغيل فحص الثغرات الحديثة فقط...{Colors.RESET}")
+            modern_results = scanner.run_modern_vulnerabilities_scan()
+            if modern_results:
+                scanner.print_modern_vulnerabilities_results(modern_results)
         elif args.ml_full:
             print(f"{Colors.YELLOW}[*] تشغيل الفحص الكامل مع التعلم الآلي...{Colors.RESET}")
             scanner.run_full_scan()

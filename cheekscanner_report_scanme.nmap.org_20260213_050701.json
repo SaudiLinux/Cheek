@@ -1,0 +1,31 @@
+{
+  "target": "scanme.nmap.org",
+  "scan_start": "2026-02-13T05:07:01.823663",
+  "scan_end": "2026-02-13T05:07:01.897800",
+  "duration": 0.07,
+  "vulnerabilities": [],
+  "security_issues": [],
+  "recommendations": [
+    "Review and patch identified vulnerabilities",
+    "Implement security headers",
+    "Regular security assessments recommended"
+  ],
+  "risk_assessment": {
+    "overall_risk": "LOW",
+    "vulnerability_count": 0,
+    "recommendation": "Risk level: LOW"
+  },
+  "ml_detections": [],
+  "advanced_analytics": {
+    "basic_stats": "analytics_placeholder"
+  },
+  "reconnaissance": {
+    "target_info": {
+      "target": "scanme.nmap.org",
+      "scan_time": "2026-02-13T05:07:01.829196"
+    },
+    "subdomains": [],
+    "technologies": {},
+    "attack_surface": {}
+  }
+}

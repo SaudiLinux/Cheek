@@ -1,11 +1,13 @@
 {
   "scan_metadata": {
     "target": "jaco.live",
-    "scan_date": "2025-09-27T10:09:01.890547",
-    "total_execution_time": 181.95539379119873,
+    "scan_date": "2025-09-28T20:00:18.574958",
+    "total_execution_time": 143.56683659553528,
     "scanner_version": "2.0.0",
     "scan_types": [
       "Web Security",
+      "Modern Vulnerabilities",
+      "Advanced Exploitation",
       "Cloud Infrastructure"
     ]
   },
@@ -40,6 +42,38 @@
       "findings": []
     },
     {
+      "scan_type": "Modern Vulnerabilities",
+      "target": "jaco.live",
+      "findings_count": 0,
+      "severity_breakdown": {
+        "CRITICAL": 0,
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "INFO": 0
+      },
+      "execution_time": 0.0,
+      "status": "FAILED",
+      "error_message": "'ModernVulnerabilities' object has no attribute 'test_graphql_injection'",
+      "findings": []
+    },
+    {
+      "scan_type": "Advanced Exploitation",
+      "target": "jaco.live",
+      "findings_count": 0,
+      "severity_breakdown": {
+        "CRITICAL": 0,
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "INFO": 0
+      },
+      "execution_time": 0.0,
+      "status": "FAILED",
+      "error_message": "'AdvancedExploits' object has no attribute 'test_advanced_sql_injection'",
+      "findings": []
+    },
+    {
       "scan_type": "Cloud Infrastructure",
       "target": "jaco.live",
       "findings_count": 0,
@@ -50,7 +84,7 @@
         "LOW": 0,
         "INFO": 0
       },
-      "execution_time": 181.95539379119873,
+      "execution_time": 143.56683659553528,
       "status": "FAILED",
       "error_message": "'CloudExploits' object has no attribute 'get_findings'",
       "findings": []

@@ -1980,42 +1980,92 @@ class CheekScanner:
                 print(f"{Colors.CYAN}    • {threat_type}: {confidence:.2%}{Colors.RESET}")
         else:
             print(f"{Colors.GREEN}[+] لم يتم العثور على تهديدات بالتعلم الآلي{Colors.RESET}")
-        """تشغيل فحص شامل"""
-        self.print_banner()
+    
+    def run_full_scan(self):
+        """تشغيل الفحص الأمني الشامل مع جميع المميزات المتقدمة"""
+        print(f"\n{Colors.CYAN}{'='*60}")
+        print(f"{Colors.CYAN}CheekScanner - Full Security Assessment")
+        print(f"{Colors.CYAN}Target: {self.target}")
+        print(f"{Colors.CYAN}Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"{Colors.CYAN}{'='*60}{Colors.RESET}")
         
-        # جمع معلومات DNS
-        self.gather_dns_info()
-        
-        # مسح المنافذ الشائعة
-        common_ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 1433, 3306, 3389, 5432, 6379, 8080, 8443, 27017]
-        self.scan_ports(common_ports)
-        
-        # تشغيل جميع وحدات الكشف
+        # Phase 1: Basic Reconnaissance
+        print(f"\n{Colors.YELLOW}[*] Phase 1: Basic Reconnaissance{Colors.RESET}")
         self.detect_web_server()
-        self.detect_email_servers()
-        self.detect_databases()
+        self.scan_email_servers()
+        self.scan_databases()
         self.detect_frameworks()
         self.detect_cms()
         self.detect_cicd()
         self.detect_containers()
-        self.detect_vulnerabilities()
-        self.detect_modern_apis()
-        self.detect_cloud_services()
+        self.scan_dns_info()
         
-        # تشغيل فحص الاستغلال السحابي الجديد
+        # Phase 2: Port Scanning
+        print(f"\n{Colors.YELLOW}[*] Phase 2: Port Scanning{Colors.RESET}")
+        common_ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 1433, 3306, 3389, 5432, 6379, 8080, 8443, 27017]
+        self.scan_ports(common_ports)
+        
+        # Phase 3: Modern Vulnerabilities
+        print(f"\n{Colors.YELLOW}[*] Phase 3: Modern Vulnerabilities{Colors.RESET}")
+        self.run_modern_vulnerabilities_scan()
+        
+        # Phase 4: Advanced Tests
+        print(f"\n{Colors.YELLOW}[*] Phase 4: Advanced Security Tests{Colors.RESET}")
+        self.run_advanced_tests()
+        
+        # Phase 5: Cloud Exploitation
+        print(f"\n{Colors.YELLOW}[*] Phase 5: Cloud Exploitation{Colors.RESET}")
         self.run_cloud_exploitation_scan()
         self.run_cloud_vulnerability_scan()
         
-        # تشغيل فحص الثغرات الحديثة
-        self.run_modern_vulnerabilities_scan()
+        # Phase 6: ML Threat Detection
+        print(f"\n{Colors.YELLOW}[*] Phase 6: ML Threat Detection{Colors.RESET}")
+        ml_results = self.run_ml_threat_detection()
         
-        # تشغيل الاختبارات المتقدمة الجديدة
-        self.results['advanced_cors_vulnerabilities'] = self.run_advanced_cors_test()
-        self.results['advanced_http_methods_vulnerabilities'] = self.run_advanced_http_methods_test()
-        self.results['advanced_security_headers_vulnerabilities'] = self.run_advanced_security_headers_test()
-        
-        # إنشاء التقرير
+        # Phase 7: Validation and Reporting
+        print(f"\n{Colors.YELLOW}[*] Phase 7: Validation and Reporting{Colors.RESET}")
+        self.validate_scan_results()
         self.generate_report()
+        
+        # Display Summary
+        self.display_scan_summary()
+        
+        return self.results
+    
+    def display_scan_summary(self):
+        """عرض ملخص نتائج الفحص"""
+        print(f"\n{Colors.YELLOW}{'='*60}")
+        print(f"{Colors.YELLOW}SCAN SUMMARY")
+        print(f"{Colors.YELLOW}{'='*60}{Colors.RESET}")
+        
+        # حساب الإحصائيات
+        vuln_count = len(self.results.get('vulnerabilities', []))
+        cloud_vuln_count = len(self.results.get('cloud_vulnerabilities', []))
+        modern_vuln_count = len(self.results.get('modern_vulnerabilities', []))
+        port_count = len(self.results.get('ports', []))
+        
+        print(f"Target: {self.target}")
+        print(f"Scan Time: {self.results.get('scan_time', 'Unknown')}")
+        print(f"Open Ports: {port_count}")
+        print(f"Vulnerabilities Found: {vuln_count}")
+        print(f"Cloud Vulnerabilities: {cloud_vuln_count}")
+        print(f"Modern Vulnerabilities: {modern_vuln_count}")
+        
+        # عرض توزيع الخطورة
+        if self.results.get('vulnerabilities'):
+            severity_counts = {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'LOW': 0}
+            for vuln in self.results['vulnerabilities']:
+                severity = vuln.get('severity', 'UNKNOWN')
+                if severity in severity_counts:
+                    severity_counts[severity] += 1
+            
+            print(f"\nSeverity Distribution:")
+            for severity, count in severity_counts.items():
+                if count > 0:
+                    color = Colors.RED if severity == 'CRITICAL' else Colors.YELLOW if severity == 'HIGH' else Colors.CYAN
+                    print(f"  {color}{severity}: {count}{Colors.RESET}")
+        
+        print(f"\n{Colors.GREEN}[+] Full scan completed successfully!{Colors.RESET}")
 
 def main():
     parser = argparse.ArgumentParser(

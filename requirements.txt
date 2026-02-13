@@ -8,3 +8,5 @@ lxml>=4.9.0
 selenium>=4.8.0
 xmltodict>=0.13.0
 configparser>=5.3.0
+numpy>=1.21.0
+scikit-learn>=1.0.0

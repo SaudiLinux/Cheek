@@ -34,7 +34,8 @@ from exploits.advanced_exploits import AdvancedExploits
 from exploits.modern_vulnerabilities import ModernVulnerabilities
 from advanced_tests import AdvancedSecurityTester
 from exploits.cloud_exploits import CloudExploits
-from exploits.cloud_exploits import CloudExploits
+from ml_threat_detection import MLThreatDetector, analyze_with_ml
+from advanced_reporting import AdvancedReporter
 
 # Initialize colorama for Windows compatibility
 init(autoreset=True)
@@ -1216,6 +1217,35 @@ class CheekScanner:
                 json.dump(summary_data, f, ensure_ascii=False, indent=2)
             print(f"{Colors.GREEN}[+] تم حفظ تقرير الملخص في: {summary_filename}{Colors.RESET}")
             
+            # Generate advanced analytics report
+            try:
+                print(f"\n{Colors.CYAN}[*] Generating advanced analytics report...{Colors.RESET}")
+                reporter = AdvancedReporter(enhanced_results, self.target)
+                analytics = reporter.generate_comprehensive_analytics()
+                
+                # Save analytics report
+                analytics_filename = report_filename.replace('.json', '_analytics.json')
+                with open(analytics_filename, 'w', encoding='utf-8') as f:
+                    json.dump(analytics, f, ensure_ascii=False, indent=2)
+                print(f"{Colors.GREEN}[+] تم حفظ تقرير التحليلات المتقدمة في: {analytics_filename}{Colors.RESET}")
+                
+                # Display key analytics
+                if analytics.get('risk_distribution'):
+                    print(f"\n{Colors.YELLOW}[*] Risk Distribution Analysis:{Colors.RESET}")
+                    risk_dist = analytics['risk_distribution']
+                    print(f"{Colors.RED}    Critical: {risk_dist.get('critical', 0)}{Colors.RESET}")
+                    print(f"{Colors.YELLOW}    High: {risk_dist.get('high', 0)}{Colors.RESET}")
+                    print(f"{Colors.CYAN}    Medium: {risk_dist.get('medium', 0)}{Colors.RESET}")
+                    print(f"{Colors.GREEN}    Low: {risk_dist.get('low', 0)}{Colors.RESET}")
+                
+                if analytics.get('top_vulnerable_endpoints'):
+                    print(f"\n{Colors.YELLOW}[*] Most Vulnerable Endpoints:{Colors.RESET}")
+                    for endpoint, count in analytics['top_vulnerable_endpoints'][:5]:
+                        print(f"{Colors.CYAN}    • {endpoint}: {count} vulnerabilities{Colors.RESET}")
+                        
+            except Exception as e:
+                print(f"{Colors.YELLOW}[!] Warning: Could not generate advanced analytics: {str(e)}{Colors.RESET}")
+            
         except Exception as e:
             print(f"{Colors.RED}[-] فشل حفظ التقرير: {e}{Colors.RESET}")
     
@@ -1800,22 +1830,156 @@ class CheekScanner:
                 high_count = sum(1 for v in real_vulnerabilities if v.get('severity', '').lower() == 'high')
                 medium_count = sum(1 for v in real_vulnerabilities if v.get('severity', '').lower() == 'medium')
                 
-                print(f"{Colors.RED}[!] إحصائيات الثغرات السحابية:{Colors.RESET}")
+                print(f"{Colors.RED}[!] تم العثور على {len(real_vulnerabilities)} ثغرة سحابية:{Colors.RESET}")
                 print(f"{Colors.RED}    • حرجة: {critical_count}{Colors.RESET}")
                 print(f"{Colors.YELLOW}    • عالية: {high_count}{Colors.RESET}")
                 print(f"{Colors.CYAN}    • متوسطة: {medium_count}{Colors.RESET}")
                 
-                print(f"{Colors.YELLOW}[*] تفاصيل الثغرات:{Colors.RESET}")
-                for vuln in real_vulnerabilities:
+                for vuln in real_vulnerabilities[:10]:  # عرض أول 10 ثغرات فقط
                     severity = vuln.get('severity', 'unknown').lower()
                     severity_color = Colors.RED if severity == 'critical' else Colors.YELLOW if severity == 'high' else Colors.CYAN
-                    vuln_type = vuln.get('status', 'Unknown')
-                    description = vuln.get('details', 'No description available')
-                    print(f"{severity_color}    • {vuln_type} ({severity}): {description}{Colors.RESET}")
+                    vuln_type = vuln.get('type', 'Unknown')
+                    description = vuln.get('description', 'No description available')
+                    print(f"{severity_color}    • {vuln_type} - خطورة: {severity}{Colors.RESET}")
+                    print(f"{Colors.CYAN}      {description}{Colors.RESET}")
+                    
+                if len(real_vulnerabilities) > 10:
+                    print(f"{Colors.YELLOW}[*] و {len(real_vulnerabilities) - 10} ثغرات أخرى...{Colors.RESET}")
             else:
-                print(f"{Colors.GREEN}[+] لم يتم العثور على ثغرات سحابية{Colors.RESET}")
+                print(f"{Colors.GREEN}[+] لم يتم العثور على ثغرات سحابية حرجة{Colors.RESET}")
         else:
             print(f"{Colors.GREEN}[+] لم يتم العثور على ثغرات سحابية{Colors.RESET}")
+    
+    def run_ml_threat_detection(self):
+        """تشغيل الكشف عن التهديدات باستخدام التعلم الآلي"""
+        print(f"{Colors.YELLOW}[*] بدء الكشف عن التهديدات باستخدام التعلم الآلي...{Colors.RESET}")
+        
+        try:
+            # تهيئة كاشف التهديدات
+            ml_detector = MLThreatDetector()
+            ml_results = []
+            
+            # تحليل النتائج الحالية باستخدام ML
+            if self.results.get('vulnerabilities'):
+                for vuln in self.results['vulnerabilities']:
+                    # إعداد بيانات الطلب للتحليل
+                    request_data = {
+                        'url': vuln.get('url', f"http://{self.target}"),
+                        'payload': vuln.get('description', ''),
+                        'behavior_data': {
+                            'request_count': 1,
+                            'time_window': 1,
+                            'error_count': 0,
+                            'unique_paths': [vuln.get('type', 'unknown')],
+                            'unauthorized_attempts': 1 if vuln.get('severity') in ['HIGH', 'CRITICAL'] else 0
+                        },
+                        'timestamp': datetime.now().timestamp(),
+                        'network_data': {
+                            'source_ip': '127.0.0.1',
+                            'port': 80,
+                            'request_size': len(vuln.get('description', '')),
+                            'response_size': 1024,
+                            'response_time': 1.0,
+                            'protocol': 'HTTP'
+                        }
+                    }
+                    
+                    # تحليل باستخدام ML
+                    ml_analysis = ml_detector.analyze_request(request_data)
+                    ml_analysis['original_vulnerability'] = vuln
+                    ml_results.append(ml_analysis)
+            
+            # تحليل حركة المرور والسلوك إذا لم تكن هناك ثغرات
+            if not ml_results:
+                # إنشاء بيانات اختبار للتحليل
+                test_request = {
+                    'url': f"http://{self.target}",
+                    'payload': 'test',
+                    'behavior_data': {
+                        'request_count': 1,
+                        'time_window': 1,
+                        'error_count': 0,
+                        'unique_paths': ['/'],
+                        'unauthorized_attempts': 0
+                    },
+                    'timestamp': datetime.now().timestamp(),
+                    'network_data': {
+                        'source_ip': '127.0.0.1',
+                        'port': 80,
+                        'request_size': 4,
+                        'response_size': 1024,
+                        'response_time': 1.0,
+                        'protocol': 'HTTP'
+                    }
+                }
+                
+                ml_analysis = ml_detector.analyze_request(test_request)
+                ml_results.append(ml_analysis)
+            
+            # تخزين النتائج
+            self.results['ml_threat_detection'] = ml_results
+            
+            # طباعة النتائج
+            self.print_ml_threat_detection_results(ml_results)
+            
+            print(f"{Colors.GREEN}[+] اكتمل الكشف عن التهديدات باستخدام التعلم الآلي{Colors.RESET}")
+            return ml_results
+            
+        except Exception as e:
+            print(f"{Colors.RED}[-] خطأ في الكشف عن التهديدات باستخدام التعلم الآلي: {e}{Colors.RESET}")
+            return None
+    
+    def print_ml_threat_detection_results(self, ml_results):
+        """طباعة نتائج الكشف عن التهديدات باستخدام التعلم الآلي"""
+        print(f"\n{Colors.YELLOW}[*] نتائج الكشف عن التهديدات باستخدام التعلم الآلي:{Colors.RESET}")
+        
+        if not ml_results:
+            print(f"{Colors.GREEN}[+] لم يتم اكتشاف تهديدات باستخدام التعلم الآلي{Colors.RESET}")
+            return
+        
+        # حساب الإحصائيات
+        high_risk_count = sum(1 for result in ml_results if result.get('risk_level') in ['HIGH', 'CRITICAL'])
+        total_threats = sum(len(result.get('threat_indicators', [])) for result in ml_results)
+        avg_confidence = sum(result.get('confidence', 0) for result in ml_results) / len(ml_results) if ml_results else 0
+        
+        print(f"{Colors.CYAN}[*] إحصائيات التحليل:{Colors.RESET}")
+        print(f"{Colors.RED if high_risk_count > 0 else Colors.GREEN}    • مخاطر عالية/حرجة: {high_risk_count}{Colors.RESET}")
+        print(f"{Colors.YELLOW}    • إجمالي المؤشرات: {total_threats}{Colors.RESET}")
+        print(f"{Colors.CYAN}    • متوسط الثقة: {avg_confidence:.2%}{Colors.RESET}")
+        
+        # عرض أهم التهديدات
+        critical_threats = [result for result in ml_results if result.get('risk_level') == 'CRITICAL']
+        if critical_threats:
+            print(f"\n{Colors.RED}[!] التهديدات الحرجة:{Colors.RESET}")
+            for threat in critical_threats[:3]:  # أول 3 تهديدات حرجة
+                print(f"{Colors.RED}    • خطورة: {threat['risk_level']} | ثقة: {threat['confidence']:.2%}{Colors.RESET}")
+                for indicator in threat.get('threat_indicators', [])[:2]:
+                    print(f"{Colors.CYAN}      - {indicator}{Colors.RESET}")
+        
+        high_threats = [result for result in ml_results if result.get('risk_level') == 'HIGH']
+        if high_threats:
+            print(f"\n{Colors.YELLOW}[!] التهديدات عالية الخطورة:{Colors.RESET}")
+            for threat in high_threats[:3]:  # أول 3 تهديدات عالية
+                print(f"{Colors.YELLOW}    • خطورة: {threat['risk_level']} | ثقة: {threat['confidence']:.2%}{Colors.RESET}")
+                for indicator in threat.get('threat_indicators', [])[:2]:
+                    print(f"{Colors.CYAN}      - {indicator}{Colors.RESET}")
+        
+        # عرض التنبؤات
+        all_predictions = {}
+        for result in ml_results:
+            predictions = result.get('predictions', {})
+            for threat_type, confidence in predictions.items():
+                if threat_type in all_predictions:
+                    all_predictions[threat_type] = max(all_predictions[threat_type], confidence)
+                else:
+                    all_predictions[threat_type] = confidence
+        
+        if all_predictions:
+            print(f"\n{Colors.PURPLE}[*] تصنيفات التهديدات:{Colors.RESET}")
+            for threat_type, confidence in sorted(all_predictions.items(), key=lambda x: x[1], reverse=True)[:5]:
+                print(f"{Colors.CYAN}    • {threat_type}: {confidence:.2%}{Colors.RESET}")
+        else:
+            print(f"{Colors.GREEN}[+] لم يتم العثور على تهديدات بالتعلم الآلي{Colors.RESET}")
         """تشغيل فحص شامل"""
         self.print_banner()
         
@@ -1877,6 +2041,10 @@ def main():
     parser.add_argument('--cloud-vulns', action='store_true', help='تشغيل فحص الثغرات السحابية فقط')
     parser.add_argument('--cloud-tests', action='store_true', help='تشغيل جميع اختبارات الخدمات السحابية فقط')
     
+    # خيارات الكشف عن التهديدات باستخدام التعلم الآلي
+    parser.add_argument('--ml-detect', action='store_true', help='تشغيل الكشف عن التهديدات باستخدام التعلم الآلي فقط')
+    parser.add_argument('--ml-full', action='store_true', help='تشغيل الفحص الكامل مع التعلم الآلي')
+    
     args = parser.parse_args()
     
     scanner = CheekScanner(args.target, args.threads, args.timeout)
@@ -1921,6 +2089,17 @@ def main():
                 scanner.print_cloud_exploitation_results(cloud_results)
             if vuln_results:
                 scanner.print_cloud_vulnerabilities_results(vuln_results)
+        elif args.ml_detect:
+            print(f"{Colors.YELLOW}[*] تشغيل الكشف عن التهديدات باستخدام التعلم الآلي فقط...{Colors.RESET}")
+            ml_results = scanner.run_ml_threat_detection()
+            if ml_results:
+                scanner.print_ml_threat_detection_results(ml_results)
+        elif args.ml_full:
+            print(f"{Colors.YELLOW}[*] تشغيل الفحص الكامل مع التعلم الآلي...{Colors.RESET}")
+            scanner.run_full_scan()
+            ml_results = scanner.run_ml_threat_detection()
+            if ml_results:
+                scanner.print_ml_threat_detection_results(ml_results)
         else:
             # تشغيل الفحص الكامل الافتراضي
             scanner.run_full_scan()

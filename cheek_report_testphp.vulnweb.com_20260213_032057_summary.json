@@ -1,0 +1,26 @@
+{
+  "scan_metadata": {
+    "target": "testphp.vulnweb.com",
+    "scan_time": "2026-02-13T02:51:32.874653",
+    "scanner_version": "2.0",
+    "total_scan_duration": "Unknown"
+  },
+  "scan_summary": {
+    "total_services_detected": 0,
+    "total_vulnerabilities": 6,
+    "total_applications": 3,
+    "total_frameworks": 1,
+    "total_apis": 0,
+    "cloud_services_detected": 0,
+    "dns_records_found": 4,
+    "total_open_ports": 1
+  },
+  "risk_assessment": {
+    "critical_vulnerabilities": 0,
+    "high_vulnerabilities": 0,
+    "medium_vulnerabilities": 0,
+    "low_vulnerabilities": 6,
+    "overall_risk_level": "CRITICAL"
+  },
+  "critical_findings": []
+}

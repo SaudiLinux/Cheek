@@ -1,0 +1,45 @@
+{
+  "risk_distribution": {
+    "severity_counts": {},
+    "category_counts": {},
+    "risk_ratios": {},
+    "critical_endpoints": [],
+    "total_vulnerabilities": 0
+  },
+  "vulnerability_patterns": {
+    "recurring_patterns": {},
+    "attack_vectors": {},
+    "pattern_frequency": {}
+  },
+  "impact_assessment": {
+    "total_impact_score": 0,
+    "average_impact_score": 0,
+    "overall_risk_level": "LOW",
+    "cia_impacts": {
+      "confidentiality": 0,
+      "integrity": 0,
+      "availability": 0
+    }
+  },
+  "ml_threat_analysis": {
+    "total_ml_detections": 1,
+    "threat_categories": {
+      "injection": 1
+    },
+    "top_threats": [
+      [
+        "injection",
+        0.023076923076923078
+      ]
+    ],
+    "average_confidence": 0.0032967032967032967,
+    "average_anomaly_score": 0.0,
+    "risk_level": "LOW",
+    "ml_detection_summary": {
+      "critical_threats": 0,
+      "high_threats": 0,
+      "medium_threats": 0,
+      "low_threats": 1
+    }
+  }
+}
